@@ -1,0 +1,172 @@
+[
+	{
+		"name": "Poljoprivreda, šumarstvo i ribarstvo",
+		"children": [
+			{"name": "Biljna i stočarska proizvodnja, lovstvo i uslužne djelatnosti povezane s njima"},
+			{"name": "Šumarstvo i sječa drva"},
+			{"name": "Ribarstvo"}
+		]
+	},
+	{
+		"name": "Rudarstvo i vađenje",
+		"children": [
+			{"name": "Vađenje sirove nafte i prirodnog plina"},
+			{"name": "Ostalo rudarstvo i vađenje"},
+			{"name": "Pomoćne uslužne djelatnosti u rudarstvu"}
+		]
+	},
+	{
+		"name": "Prerađivačka industrija",
+		"children": [
+			{"name": "Proizvodnja prehrambenih proizvoda"},
+			{"name": "Proizvodnja pića"},
+			{"name": "Proizvodnja duhanskih proizvoda"},
+			{"name": "Proizvodnja tekstila"},
+			{"name": "Proizvodnja odjeće"},
+			{"name": "Proizvodnja kože i srodnih proizvoda"},
+			{"name": "Prerada drva i proizvoda od drva i pluta, osim namještaja; proizvodnja proizvoda od slame i pletarskih materijala"},
+			{"name": "Proizvodnja papira i proizvoda od papira"},
+			{"name": "Tiskanje i umnožavanje snimljenih zapisa"},
+			{"name": "Proizvodnja koksa i rafiniranih naftnih proizvoda"},
+			{"name": "Proizvodnja kemikalija i kemijskih proizvoda"},
+			{"name": "Proizvodnja osnovnih farmaceutskih proizvoda i farmaceutskih pripravaka"},
+			{"name": "Proizvodnja proizvoda od gume i plastike"},
+			{"name": "Proizvodnja ostalih nemetalnih mineralnih proizvoda"},
+			{"name": "Proizvodnja metala"},
+			{"name": "Proizvodnja gotovih metalnih proizvoda, osim strojeva i opreme"},
+			{"name": "Proizvodnja računala te elektroničkih i optičkih proizvoda"},
+			{"name": "Proizvodnja električne opreme"},
+			{"name": "Proizvodnja strojeva i uređaja, d. n."},
+			{"name": "Proizvodnja motornih vozila, prikolica i poluprikolica"},
+			{"name": "Proizvodnja ostalih prijevoznih sredstava"},
+			{"name": "Proizvodnja namještaja"},
+			{"name": "Ostala prerađivačka industrija"},
+			{"name": "Popravak i instaliranje strojeva i opreme"}
+		]
+	},
+	{
+		"name": "Opskrba električnom energijom, plinom, parom i klimatizacija",
+		"children": []
+	},
+	{
+		"name": "Opskrba vodom; uklanjanje otpadnih voda, gospodarenje otpadom te djelatnosti sanacije okoliša",
+		"children": [
+			{"name": "Skupljanje, pročišćavanje i opskrba vodom"},
+			{"name": "Uklanjanje otpadnih voda"},
+			{"name": "Skupljanje otpada, djelatnosti obrade i zbrinjavanja otpada; oporaba materijala"},
+			{"name": "Djelatnosti sanacije okoliša te ostale djelatnosti gospodarenja otpadom"}
+		]
+	},
+	{
+		"name": "Građevinarstvo",
+		"children": [
+			{"name": "Gradnja zgrada"},
+			{"name": "Gradnja građevina niskogradnje"},
+			{"name": "Specijalizirane građevinske djelatnosti"}
+		]
+	},
+	{
+		"name": "Trgovina na veliko i na malo; popravak motornih vozila i motocikala",
+		"children": [
+			{"name": "Trgovina na veliko i na malo motornim vozilima i motociklima; popravak motornih vozila i motocikala"},
+			{"name": "Trgovina na veliko, osim trgovine motornim vozilima i motociklima"},
+			{"name": "Trgovina na malo, osim trgovine motornim vozilima i motociklima"}
+		]
+	},
+	{
+		"name": "Prijevoz i skladištenje",
+		"children": [
+			{"name": "Kopneni prijevoz i cjevovodni transport"},
+			{"name": "Vodeni prijevoz"},
+			{"name": "Zračni prijevoz"},
+			{"name": "Skladištenje i prateće djelatnosti u prijevozu"},
+			{"name": "Poštanske i kurirske djelatnosti"}
+		]
+	},
+	{
+		"name": "Djelatnosti pružanja smještaja te pripreme i usluživanja hrane",
+		"children": [
+			{"name": "Smještaj"},
+			{"name": "Djelatnost pripreme i usluživanja hrane i pića"}
+		]
+	},
+	{
+		"name": "Informacije i komunikacije",
+		"children": [
+			{"name": "Izdavačke djelatnosti"},
+			{"name": "Proizvodnja filmova, videofilmova i televizijskog programa, djelatnosti snimanja zvučnih zapisa i izdavanja glazbenih zapisa"},
+			{"name": "Emitiranje programa"},
+			{"name": "Telekomunikacije"},
+			{"name": "Računalno programiranje, savjetovanje i djelatnosti povezane s njima"},
+			{"name": "Informacijske uslužne djelatnosti"}
+		]
+	},
+	{
+		"name": "Financijske djelatnosti i djelatnosti osiguranja",
+		"children": [
+			{"name": "Financijske uslužne djelatnosti, osim osiguranja i mirovinskih fondova"},
+			{"name": "Osiguranje, reosiguranje i mirovinski fondovi, osim obveznoga socijalnog osiguranja"},
+			{"name": "Pomoćne djelatnosti kod financijskih usluga i djelatnosti osiguranja"}
+		]
+	},
+	{
+		"name": "Poslovanje nekretninama",
+		"children": []
+	},
+	{
+		"name": "Stručne, znanstvene i tehničke djelatnosti",
+		"children": [
+			{"name": "Pravne i računovodstvene djelatnosti"},
+			{"name": "Upravljačke djelatnosti; savjetovanje u vezi s upravljanjem"},
+			{"name": "Arhitektonske djelatnosti i inženjerstvo; tehničko ispitivanje i analiza"},
+			{"name": "Znanstveno istraživanje i razvoj"},
+			{"name": "Promidžba (reklama i propaganda) i istraživanje tržišta"},
+			{"name": "Ostale stručne, znanstvene i tehničke djelatnosti"},
+			{"name": "Veterinarske djelatnosti"}
+		]
+	},
+	{
+		"name": "Administrativne i pomoćne uslužne djelatnosti",
+		"children": [
+			{"name": "Djelatnosti iznajmljivanja i davanja u zakup (leasing)"},
+			{"name": "Djelatnosti zapošljavanja"},
+			{"name": "Putničke agencije, organizatori putovanja (turoperatori) i ostale rezervacijske usluge te djelatnosti povezane s njima"},
+			{"name": "Zaštitne i istražne djelatnosti"},
+			{"name": "Usluge u vezi s  upravljanjem  i održavanjem zgrada te djelatnosti uređenja i održavanja krajolika"},
+			{"name": "Uredske  administrativne i pomoćne djelatnosti te ostale  poslovne pomoćne djelatnosti"}
+		]
+	},
+	{
+		"name": "Javna uprava i obrana; obvezno socijalno osiguranje",
+		"children": []
+	},
+	{
+		"name": "Obrazovanje",
+		"children": []
+	},
+	{
+		"name": "Djelatnosti zdravstvene zaštite i socijalne skrbi",
+		"children": [
+			{"name": "Djelatnosti zdravstvene zaštite"},
+			{"name": "Djelatnosti socijalne skrbi sa smještajem"},
+			{"name": "Djelatnosti socijalne skrbi bez smještaja"}
+		]
+	},
+	{
+		"name": "Umjetnost, zabava i rekreacija",
+		"children": [
+			{"name": "Kreativne, umjetničke i zabavne djelatnosti"},
+			{"name": "Knjižnice, arhivi, muzeji i ostale kulturne djelatnosti"},
+			{"name": "Djelatnosti kockanja i klađenja"},
+			{"name": "Sportske djelatnosti te zabavne i rekreacijske djelatnosti"}
+		]
+	},
+	{
+		"name": "Ostale uslužne djelatnosti",
+		"children": [
+			{"name": "Djelatnosti članskih organizacija"},
+			{"name": "Popravak računala i predmeta za osobnu uporabu i kućanstvo"},
+			{"name": "Ostale osobne uslužne djelatnosti"}
+		]
+	}
+]
