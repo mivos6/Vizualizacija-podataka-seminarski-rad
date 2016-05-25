@@ -36,12 +36,22 @@
     line-height: 20px;
 }
 
+#select {
+	float: left;
+	position: absolute;
+	top: 402px;
+}
+
 #slider rect {
 	fill: lightgrey;
 	stroke: black;
 	stroke-width: 1px;
 }
 
-#slider circle{
+#slider circle {
 	fill: blue;
+}
+
+#slider text {
+	font-size: 10px;
 }

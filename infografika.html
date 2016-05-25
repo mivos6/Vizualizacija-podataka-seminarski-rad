@@ -15,7 +15,7 @@
 		<p>Prosječna neto plaća: <span id="neto"></span></p>
 	</div>
 
-	<div>
+	<div id="select">
 		<select name="year" size="1" id="selectYear">
 			<option selected>2013</option>
 			<option>2012</option>
@@ -44,7 +44,8 @@
 
 		var svgWidth = 800,
 			svgHeight = 800,
-			padding = 50,
+			horizontalPadding = 70,
+			verticalPadding = 40,
 			graphHeight = 400;
 
 		var svg = d3.select("body")

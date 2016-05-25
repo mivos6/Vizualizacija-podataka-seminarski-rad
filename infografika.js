@@ -9,13 +9,13 @@ function plotData() {
 	xScale = d3.scale.linear()
         	.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 1000), 
         		d3.max(plotZ, function(d) { return selectMonth(d); })])
-        	.range([padding, svgWidth - padding]);
+        	.range([horizontalPadding, svgWidth - horizontalPadding]);
     yScale = d3.scale.linear()
 			.domain([(d3.min(plotN, function(d, i) { 
 					return selectMonth(d) != 0?selectMonth(d):selectMonth(neto[index][i-1]); 
 				}) - 100),
 				d3.max(plotN, function(d) { return selectMonth(d); })])
-        	.range([graphHeight - padding, padding]);
+        	.range([graphHeight - verticalPadding, verticalPadding]);
 
     colorScale = d3.scale.category10();
 
@@ -47,11 +47,11 @@ function plotData() {
 	//Crtanje osi
 	graph.append("g")
 			.attr("class", "x axis")
-			.attr("transform", "translate(0," + (graphHeight - padding) + ")")
+			.attr("transform", "translate(0," + (graphHeight - verticalPadding) + ")")
 			.call(xAxis);
 	graph.append("g")
 			.attr("class", "y axis")
-			.attr("transform", "translate(" + padding + ",0)")
+			.attr("transform", "translate(" + horizontalPadding + ",0)")
 			.call(yAxis);
 	//Točke grafa
 	var circles = graph.selectAll("circle")
@@ -134,11 +134,25 @@ function update() {
 
 //Dodavanje slidera za odabir mjeseca u godini
 function slider() {
-	//Podaci za lakše dodavanje segmenata slidera
-	var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+	//Podaci segmenata slidera
+	var data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+	var textData = [
+		"1.siječanj",
+		"2.veljača",
+		"3.ožujak",
+		"4.travanj",
+		"5.svibanj",
+		"6.lipanj",
+		"7.srpanj",
+		"8.kolovoz",
+		"9.rujan",
+		"10.listopad",
+		"11.studeni",
+		"12.prosinac"
+	];
 	//Skala koja preračunava poziciju slidera u br. segmenta
 	var sliderScale = d3.scale.quantize()
-			.domain([padding, (svgWidth - padding)])
+			.domain([horizontalPadding, (svgWidth - horizontalPadding)])
 			.range(data)
 
 	var svg = d3.select("svg");
@@ -148,19 +162,35 @@ function slider() {
 			.attr("id", "slider")
 			.attr("transform", "translate(0," + graphHeight + ")");
 	//Iscrtavanje trake slidera
-	var slideBar = slider.selectAll("rect")
+	var sliderBar = slider.selectAll("rect")
 			.data(data)
 			.enter()
 			.append("rect")
-			.attr("x", function(d) { return padding + d*(svgWidth - 2*padding)/12; })
+			.attr("x", function(d) { 
+				return horizontalPadding + d*(svgWidth - 2*horizontalPadding)/12; 
+			})
 			.attr("y", 0)
-			.attr("width", (svgWidth - 2*padding)/12)
+			.attr("width", (svgWidth - 2*horizontalPadding)/12)
 			.attr("height", 10)
 	//Iscrtavanje slidera
-	var slidePointer = slider.append("circle")
-			.attr("cx", padding)
+	var sliderPointer = slider.append("circle")
+			.attr("cx", horizontalPadding)
 			.attr("cy", 5)
 			.attr("r", 10);
+	//Naslovi segmenata
+	var sliderText = slider.selectAll("text")
+			.data(textData)
+			.enter()
+			.append("text")
+			.attr("x", function(d, i) { 
+				return horizontalPadding + i*(svgWidth - 2*horizontalPadding)/12; 
+			})
+			.attr("y", 25)
+			.text(function(d) { return d; })
+			.attr("text-anchor", "middle")
+			.attr("transform", function(d) {
+				return "translate(" + (svgWidth - 2*horizontalPadding)/12/2 + ",0)";
+			});
 
 	//Reakcija slidera na povlačenje mišem
 	var drag = d3.behavior.drag()
@@ -173,7 +203,9 @@ function slider() {
 			.on("drag", function() {
 				//x pozicija slidera ovisno o pozicij miša
 				//ne smije biti manja od početka slidera, tj. veća od kraja
-				var pointerPos = d3.max([padding, d3.min([(svgWidth - padding), d3.event.x])]);
+				var pointerPos = d3.max([horizontalPadding, 
+						d3.min([(svgWidth - horizontalPadding), d3.event.x])
+					]);
 				d3.select(this).attr("cx", pointerPos);	//postavljanje slidera na poziciju miša
 				currentMonth = sliderScale(pointerPos) + 1; //izračunavanje segmenta i 
 															//postavljanje trenutnog mjeseca
@@ -186,7 +218,7 @@ function slider() {
 						.attr("opacity", 1); 
 			});
 	//Poziv drag funkcije na slideru
-	slidePointer.call(drag);
+	sliderPointer.call(drag);
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
