@@ -207,9 +207,12 @@ function slider() {
 						d3.min([(svgWidth - horizontalPadding), d3.event.x])
 					]);
 				d3.select(this).attr("cx", pointerPos);	//postavljanje slidera na poziciju miša
-				currentMonth = sliderScale(pointerPos) + 1; //izračunavanje segmenta i 
-															//postavljanje trenutnog mjeseca
-				update();	//ažuriranje grafa
+				var newCurrentMonth = sliderScale(pointerPos) + 1; 	//izračunavanje segmenta i 
+																	//postavljanje trenutnog mjeseca
+				if (newCurrentMonth != currentMonth) {
+					currentMonth = newCurrentMonth;
+					update();
+				}
 			})
 			.on("dragend", function() {
 				d3.select(this)
