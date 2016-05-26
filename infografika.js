@@ -251,21 +251,11 @@ function categoryMenu() {
 			.style("padding-right", "5px");
 	cat.append("span").text("Kategorije:");
 
-	var categories = menu.selectAll(".level1")
-			.data(kategorije)
-			.enter()
-			.append("div")
-			.attr("class", "level1")
-			.html(function(d) { return d.name; })
+	var count = 0;
 
-	categories.each(function(d) {
-		menu.selectAll(".level2")
-			.data(d.children, getName)
-			.enter()
-			.append("div")
-			.attr("class", "level2")
-			.html(function(d) { return d.name; })
-	});
+	while (kategorije[count++]) {
+		
+	}
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
