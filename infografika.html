@@ -8,14 +8,15 @@
 	<link rel="stylesheet" type="text/css" href="infografika.css">
 </head>
 <body>
-	<!--Blok koji predstavlja tooltip na grafu-->
+	<!--Tooltip na grafu-->
 	<div id="tooltip" class="hidden">
 		<p id="djelatnost" style="font-weight: bold"></p>
 		<p>Broj zaposlenih: <span id="zaposleni"></span></p>
 		<p>Prosječna neto plaća: <span id="neto"></span></p>
 	</div>
 
-	<div id="select">
+	<!--Izbor godine-->
+	<div id="select" style="visibility: hidden">
 		<select name="year" size="1" id="selectYear">
 			<option selected>2013</option>
 			<option>2012</option>
@@ -33,21 +34,12 @@
 			<option>2000</option>
 		</select>
 	</div>
+
+	<!--Izbor kategorije-->
+	<div id="category_menu">
+		
+	</div>
 	<script type="text/javascript">
-		var kategorije, 
-			zaposleni = [], 
-			neto = [], 
-			ukupnoZap = [], 
-			prosjekNeto = [], 
-			currentYear = 2013,
-			currentMonth = 1;
-
-		var svgWidth = 800,
-			svgHeight = 800,
-			horizontalPadding = 70,
-			verticalPadding = 40,
-			graphHeight = 400;
-
 		var svg = d3.select("body")
 				.append("svg")
 				.attr("width", svgWidth)
@@ -97,6 +89,9 @@
 			setDataToPlot();
 			plotData();
 			slider();
+			categoryMenu();
+			d3.select("#select")
+					.style("visibility", "visible");
 		}, 2000);
 
 		d3.select("#selectYear")

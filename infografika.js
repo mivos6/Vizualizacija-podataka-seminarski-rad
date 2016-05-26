@@ -1,3 +1,17 @@
+var kategorije, 
+	zaposleni = [], 
+	neto = [], 
+	ukupnoZap = [], 
+	prosjekNeto = [], 
+	currentYear = 2013,
+	currentMonth = 1;
+
+var svgWidth = 800,
+	svgHeight = 800,
+	horizontalPadding = 70,
+	verticalPadding = 40,
+	graphHeight = 400;
+
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
 var plotZ, plotN;		//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
 var criteria, index;	//kriterij za iscrtavanje, indeks koji pokazuje na podatke za odabranu godinu
@@ -12,7 +26,7 @@ function plotData() {
         	.range([horizontalPadding, svgWidth - horizontalPadding]);
     yScale = d3.scale.linear()
 			.domain([(d3.min(plotN, function(d, i) { 
-					return selectMonth(d) != 0?selectMonth(d):selectMonth(neto[index][i-1]); 
+					return selectMonth(d) != 0?selectMonth(d):selectMonth(plotN[i-1]); 
 				}) - 100),
 				d3.max(plotN, function(d) { return selectMonth(d); })])
         	.range([graphHeight - verticalPadding, verticalPadding]);
@@ -91,7 +105,7 @@ function update() {
 	xScale.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 1000), 
         d3.max(plotZ, function(d) { return selectMonth(d); })]);
 	yScale.domain([(d3.min(plotN, function(d, i) { 
-			return selectMonth(d) != 0?selectMonth(d):selectMonth(neto[index][i-1]); 
+			return selectMonth(d) != 0?selectMonth(d):selectMonth(plotN[i-1]); 
 		}) - 100),
 		d3.max(plotN, function(d) { return selectMonth(d); })]);
 
@@ -102,8 +116,8 @@ function update() {
 			.data(plotZ, getKey)
 			.on("mouseover", function(d, i) {
 				d3.select(this).transition()
-					.duration(250)
-					.attr("r", 10);
+						.duration(250)
+						.attr("r", 10);
 				d3.select("#tooltip #djelatnost").text(d.Djelatnost);
 				d3.select("#tooltip #zaposleni").text(selectMonth(d));
 				d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
@@ -123,13 +137,13 @@ function update() {
 			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); })
 	//Ponovo iscrtavanje osi
 	graph.select(".x.axis")
-		.transition("linear")
-		.duration(500)
-		.call(xAxis)
+			.transition("linear")
+			.duration(500)
+			.call(xAxis)
 	graph.select(".y.axis")
-		.transition("linear")
-		.duration(500)
-		.call(yAxis)
+			.transition("linear")
+			.duration(500)
+			.call(yAxis)
 }
 
 //Dodavanje slidera za odabir mjeseca u godini
@@ -222,6 +236,17 @@ function slider() {
 			});
 	//Poziv drag funkcije na slideru
 	sliderPointer.call(drag);
+}
+
+//Dodavanje izbornika kategorija
+function categoryMenu() {
+	var menu = d3.select("#category_menu");
+
+	var items = menu.selectAll("div")
+			.data(kategorije)
+			.enter()
+			.append("div")
+			.html(function(d) { return d.name; });
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
