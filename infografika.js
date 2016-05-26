@@ -242,11 +242,30 @@ function slider() {
 function categoryMenu() {
 	var menu = d3.select("#category_menu");
 
-	var items = menu.selectAll("div")
+	menu.append("div")
+			.html("Sve djelatnosti");
+
+	var cat = menu.append("div")
+	cat.append("img")
+			.attr("src", "images/minus.png")
+			.style("padding-right", "5px");
+	cat.append("span").text("Kategorije:");
+
+	var categories = menu.selectAll(".level1")
 			.data(kategorije)
 			.enter()
 			.append("div")
-			.html(function(d) { return d.name; });
+			.attr("class", "level1")
+			.html(function(d) { return d.name; })
+
+	categories.each(function(d) {
+		menu.selectAll(".level2")
+			.data(d.children, getName)
+			.enter()
+			.append("div")
+			.attr("class", "level2")
+			.html(function(d) { return d.name; })
+	});
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
@@ -300,6 +319,10 @@ function indexToYear(index) { return index + 2000; }
 //Funkcija za dohvaćanje ključa kod data join-a
 function getKey(d) {
 	return d.Djelatnost;
+}
+
+function getName(d) {
+	return d.name;
 }
 
 //Postvljanje podatak za iscrtavanje

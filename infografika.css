@@ -63,7 +63,7 @@
 }
 
 #category_menu  div {
-	width: 400px;
+	width: 200px;
 	height: auto;
 	padding: 10px;
 	background-color: #CCC;
@@ -73,4 +73,12 @@
 	-webkit-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
 	-moz-box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
 	box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+}
+
+#category_menu .level1{
+	margin-left: 25px;
+}
+
+#category_menu .level2{
+	margin-left: 50px;
 }
