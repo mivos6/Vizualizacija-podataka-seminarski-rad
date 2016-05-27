@@ -244,38 +244,75 @@ function categoryMenu() {
 
 	menu.append("div")
 			.attr("class", "item")
+			.attr("id", "sve_djelatnosti")
 			.html("Sve djelatnosti");
 
 	menu.append("div")
 			.attr("class", "item")
-			.html("<img src=\"images/minus.png\"> Kategorije");
+			.attr("id", "sve_kategorije")
+			.html("<img src=\"images/plus.png\"> Kategorije");
 	
-
+	//Kategorije su prva razina
 	var level1 = menu.append("div")
-			.attr("class", "level1")
+			.attr("class", "level1 hidden")
 			.selectAll("div")
 					.data(kategorije)
 					.enter()
 					.append("div")
-					.attr("class", "item")
-					.attr("id", function(d, i) { return "e" + i; })
+					.attr("class", function(d) { 
+						var c = "item";
+						if (d.children.length > 0)
+							c += " collapsable";
+						return c;
+					})
+					.attr("id", function(d, i) { return "kategorija" + i; })
 					.html(function(d) { 
 						if (d.children.length > 0) {
-							return "<img src=\"images/minus.png\"> " + d.name;
+							return "<img src=\"images/plus.png\"> " + d.name;
 						}
 						return d.name; 
 					});
-
+	//Djelatnosti su druga razina
 	level1.each(function(d, i) {
 		d3.select(this.parentNode)
-				.insert("div", "#e" + i + " + *")
-				.attr("class", "level2")
+				.insert("div", "#kategorija" + i + " + *")
+				.attr("class", "level2 hidden")
+				.attr("id", "djelatnosti" + i)
 				.selectAll("div")
 						.data(d.children)
 						.enter()
 						.append("div")
 						.attr("class", "item")
 						.html(function(d) { return d.name; });
+	});
+
+	d3.select("#sve_kategorije").select("img")
+			.on("click", function() {
+				var l1 = d3.select(".level1");
+				var img = d3.select(this);
+				if (l1.classed("hidden")) {
+					l1.classed("hidden", false);
+					img.attr("src", "images/minus.png");
+				}
+				else {
+					l1.classed("hidden", true);
+					img.attr("src", "images/plus.png");
+				}
+
+			});
+	d3.select(".level1").selectAll(".collapsable").each(function(d, i) {
+		var l2 = d3.select(this.nextSibling);
+		var img = d3.select(this).select("img")
+				.on("click", function() {
+					if (l2.classed("hidden")) {
+						l2.classed("hidden", false);
+						img.attr("src", "images/minus.png");
+					}
+					else {
+						l2.classed("hidden", true);
+						img.attr("src", "images/plus.png");
+					}
+				});
 	});
 }
 

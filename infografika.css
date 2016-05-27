@@ -82,3 +82,7 @@
 #category_menu .level2{
 	margin-left: 25px;
 }
+
+.hidden {
+	visibility: collapse;
+}
