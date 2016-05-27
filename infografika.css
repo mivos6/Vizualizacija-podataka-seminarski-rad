@@ -62,7 +62,7 @@
 	top: 450px;
 }
 
-#category_menu  div {
+#category_menu  .item {
 	width: 200px;
 	height: auto;
 	padding: 10px;
@@ -80,5 +80,5 @@
 }
 
 #category_menu .level2{
-	margin-left: 50px;
+	margin-left: 25px;
 }

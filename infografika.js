@@ -243,19 +243,40 @@ function categoryMenu() {
 	var menu = d3.select("#category_menu");
 
 	menu.append("div")
+			.attr("class", "item")
 			.html("Sve djelatnosti");
 
-	var cat = menu.append("div")
-	cat.append("img")
-			.attr("src", "images/minus.png")
-			.style("padding-right", "5px");
-	cat.append("span").text("Kategorije:");
+	menu.append("div")
+			.attr("class", "item")
+			.html("<img src=\"images/minus.png\"> Kategorije");
+	
 
-	var count = 0;
+	var level1 = menu.append("div")
+			.attr("class", "level1")
+			.selectAll("div")
+					.data(kategorije)
+					.enter()
+					.append("div")
+					.attr("class", "item")
+					.attr("id", function(d, i) { return "e" + i; })
+					.html(function(d) { 
+						if (d.children.length > 0) {
+							return "<img src=\"images/minus.png\"> " + d.name;
+						}
+						return d.name; 
+					});
 
-	while (kategorije[count++]) {
-		
-	}
+	level1.each(function(d, i) {
+		d3.select(this.parentNode)
+				.insert("div", "#e" + i + " + *")
+				.attr("class", "level2")
+				.selectAll("div")
+						.data(d.children)
+						.enter()
+						.append("div")
+						.attr("class", "item")
+						.html(function(d) { return d.name; });
+	});
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
