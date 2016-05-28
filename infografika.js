@@ -13,9 +13,9 @@ var svgWidth = 800,
 	graphHeight = 400;
 
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
-var plotZ, plotN;					//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
-var criteria = "Sve djelatnosti",	//kriterij za iscrtavanje
-	index;							//indeks koji pokazuje na podatke za odabranu godinu
+var plotZ, plotN;	//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
+var criteria = [],	//kriterij za iscrtavanje
+	index;			//indeks koji pokazuje na podatke za odabranu godinu
 
 //inicijalno iscrtavanje grafa
 //dodavanje podataka i elemenata u svg
@@ -362,7 +362,6 @@ function categoryMenu() {
 			})
 			.on("click", function(d) {
 				var item = d3.select(this);
-				var newCriteria;
 				
 				menu.select(".selected")
 						.classed("selected", false)
@@ -377,22 +376,49 @@ function categoryMenu() {
 						.style("background-color", "blue");
 						
 				//Promjena kriterija za iscrtavanje
-				switch(item.attr("id")){
+				criteria = [];
+				switch(item.attr("id")) {
 					case "sve_djelatnosti":
-						newCriteria = "Sve djelatnosti";
+						var count = 0;
+						kategorije.forEach(function(d) {
+							if (d.children.length > 0) {
+								d.children.forEach(function(d) {
+									criteria[count++] = d.name;
+								});
+							}
+							else criteria[count++] = d.name;
+						});
 						break;
 					case "sve_kategorije":
-						newCriteria = "Sve kategorije";
+						var count = 0;
+						kategorije.forEach(function(d) {
+							criteria[count++] = d.name;
+						});
 						break;
 					default:
-						newCriteria = d.name;
+						var count = 0;
+						if (d.children) {
+							if (d.children.length > 0) {
+								d.children.forEach(function(d) {
+									criteria[count++] = d.name;
+								});
+							}
+							else {
+								kategorije.forEach(function(d) {
+									criteria[count++] = d.name;
+								});
+							}
+						}
+						else {
+							var parent = getParentCategory(d);
+							parent.children.forEach(function(d) {
+								criteria[count++] = d.name;
+							});
+						}
 				}
 				//Izmjena podataka i ponovno iscrtavanje prema kriteriju
-				if (newCriteria != criteria) {
-					criteria = newCriteria;
-					setDataToPlot();
-					update();
-				}
+				setDataToPlot();
+				update();
 			});
 }
 
@@ -459,35 +485,14 @@ function setDataToPlot() {
 	plotN = [];
 	index = yearToIndex(currentYear);
 
-	switch (criteria) {
-		case "Sve djelatnosti":
-			var count = 0;
-			zaposleni[index].forEach(function(d) {
-				if (isSubCategory(d))
-					plotZ[count++] = d;
-			});
+	var count = 0;
+	var i = 0;
+	criteria.forEach(function(d) {
+		while (zaposleni[index][i].Djelatnost != d) i++;
 
-			count = 0;
-			neto[index].forEach(function(d) {
-				if (isSubCategory(d))
-					plotN[count++] = d;
-			});
-			break;
-		case "Sve kategorije":
-			var count = 0;
-			zaposleni[index].forEach(function(d) {
-				if (isCategory(d))
-					plotZ[count++] = d;
-			});
-
-			count = 0;
-			neto[index].forEach(function(d) {
-				if (isCategory(d))
-					plotN[count++] = d;
-			});
-			break;
-		default:
-	}
+		plotZ[count] = zaposleni[index][i];
+		plotN[count++] = neto[index][i];
+	});
 }
 
 //Odabir mjeseca, parametar je red u JSON tablici
@@ -520,5 +525,32 @@ function selectMonth(d) {
 			return d.XII;
 		default:
 			return d.I_XII;
+	}
+}
+
+//Inicijalno postavi kriterij za iscrtavanje
+//tako da se iscrtaju sve djelatnosti
+function initialCriteria() {
+	var count = 0;
+	kategorije.forEach(function(d) {
+		if (d.children.length > 0) {
+			d.children.forEach(function(d) {
+				criteria[count++] = d.name;
+			});
+		}
+		else criteria[count++] = d.name;
+	});
+}
+
+//Pronalaženje roditeljske kategorije za neku djelatnost
+function getParentCategory(child) {
+	for (var i = 0; i < kategorije.length; i++) {
+		if (kategorije[i].children.length > 0) {
+			var parent = kategorije[i];
+			for (var j = 0; j < parent.children.length; j++) {
+				if (parent.children[j] == child)
+					return parent;
+			}
+		}
 	}
 }

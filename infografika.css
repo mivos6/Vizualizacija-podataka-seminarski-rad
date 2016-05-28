@@ -63,6 +63,7 @@
 }
 
 #category_menu  .item {
+	font-size: 12px;
 	width: 200px;
 	height: auto;
 	padding: 10px;
