@@ -13,8 +13,9 @@ var svgWidth = 800,
 	graphHeight = 400;
 
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
-var plotZ, plotN;		//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
-var criteria, index;	//kriterij za iscrtavanje, indeks koji pokazuje na podatke za odabranu godinu
+var plotZ, plotN;					//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
+var criteria = "Sve djelatnosti",	//kriterij za iscrtavanje
+	index;							//indeks koji pokazuje na podatke za odabranu godinu
 
 //inicijalno iscrtavanje grafa
 //dodavanje podataka i elemenata u svg
@@ -41,7 +42,7 @@ function plotData() {
 	yAxis = d3.svg.axis()
 			.scale(yScale)
 			.orient("left")
-			.ticks(15);
+			.ticks(10);
 
 	var svg = d3.select("svg")
 
@@ -113,7 +114,27 @@ function update() {
 
 	//Ažuriranje točaka na grafu
 	var circles = graph.selectAll("circle")
-			.data(plotZ, getKey)
+			.data(plotZ, getKey);
+	circles.transition("linear")
+			.duration(500)
+			.attr("cx", function(d) { return xScale(selectMonth(d)); })
+			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); });
+	//Dodavanje točaka
+	circles.enter()
+			.append("circle")
+			.attr("cx", 0)
+			.attr("cy", svgHeight)
+			.attr("r", 2)
+			.style("fill", function(d, i) { return colorScale(i); })
+			.transition()
+			.duration(500)
+			.attr("cx", function(d) { return xScale(selectMonth(d)); })
+			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); });
+	//Uklanjanje točaka
+	circles.exit().remove();
+	
+	//Dodavanje prikaza tooltipa
+	graph.selectAll("circle")
 			.on("mouseover", function(d, i) {
 				d3.select(this).transition()
 						.duration(250)
@@ -128,13 +149,14 @@ function update() {
 							return ((xPos > svgWidth/2)?(xPos - 200):xPos) + "px";
 						})
 						.classed("hidden", false);
+			})
+			.on("mouseout", function() {	//Uklanjanje tooltipa
+				d3.select(this).transition()
+						.duration(250)
+						.attr("r", 2);
+				d3.select("#tooltip").classed("hidden", true);
 			});
-
-	//Pomicanje točaka
-	circles.transition("linear")
-			.duration(500)
-			.attr("cx", function(d) { return xScale(selectMonth(d)); })
-			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); })
+			
 	//Ponovo iscrtavanje osi
 	graph.select(".x.axis")
 			.transition("linear")
@@ -252,7 +274,7 @@ function categoryMenu() {
 	menu.append("div")
 			.attr("class", "item")
 			.attr("id", "sve_kategorije")
-			.html("<img src=\"images/plus.png\"> Kategorije");
+			.html("<img src=\"images/plus.png\"> Sve kategorije");
 	
 	//Kategorije su prva razina
 	var level1 = menu.append("div")
@@ -288,6 +310,7 @@ function categoryMenu() {
 						.html(function(d) { return d.name; });
 	});
 
+	//Otvaranje/zatvaranje razina izbornika
 	menu.select("#sve_kategorije").select("img")
 			.on("click", function() {
 				var l1 = d3.select(".level1");
@@ -317,6 +340,7 @@ function categoryMenu() {
 				});
 	});
 	
+	//Promjena izgleda elemenata izbornika kod prelaska mišem
 	menu.selectAll(".item")
 			.on("mouseover", function() {
 				var item = d3.select(this);
@@ -336,19 +360,39 @@ function categoryMenu() {
 							.style("background-color", "#CCC");
 				}
 			})
-			.on("click", function() {
+			.on("click", function(d) {
+				var item = d3.select(this);
+				var newCriteria;
+				
 				menu.select(".selected")
 						.classed("selected", false)
 						.transition()
 						.duration(150)
 						.style("color", "black")
 						.style("background-color", "#CCC");
-				d3.select(this)
-						.classed("selected", true)
+				item.classed("selected", true)
 						.transition()
 						.duration(250)
 						.style("color", "white")
 						.style("background-color", "blue");
+						
+				//Promjena kriterija za iscrtavanje
+				switch(item.attr("id")){
+					case "sve_djelatnosti":
+						newCriteria = "Sve djelatnosti";
+						break;
+					case "sve_kategorije":
+						newCriteria = "Sve kategorije";
+						break;
+					default:
+						newCriteria = d.name;
+				}
+				//Izmjena podataka i ponovno iscrtavanje prema kriteriju
+				if (newCriteria != criteria) {
+					criteria = newCriteria;
+					setDataToPlot();
+					update();
+				}
 			});
 }
 
@@ -415,19 +459,35 @@ function setDataToPlot() {
 	plotN = [];
 	index = yearToIndex(currentYear);
 
-	var count = 0;
+	switch (criteria) {
+		case "Sve djelatnosti":
+			var count = 0;
+			zaposleni[index].forEach(function(d) {
+				if (isSubCategory(d))
+					plotZ[count++] = d;
+			});
 
-	zaposleni[index].forEach(function(d) {
-		if (isSubCategory(d))
-			plotZ[count++] = d;
-	});
+			count = 0;
+			neto[index].forEach(function(d) {
+				if (isSubCategory(d))
+					plotN[count++] = d;
+			});
+			break;
+		case "Sve kategorije":
+			var count = 0;
+			zaposleni[index].forEach(function(d) {
+				if (isCategory(d))
+					plotZ[count++] = d;
+			});
 
-	count = 0;
-
-	neto[index].forEach(function(d) {
-		if (isSubCategory(d))
-			plotN[count++] = d;
-	});
+			count = 0;
+			neto[index].forEach(function(d) {
+				if (isCategory(d))
+					plotN[count++] = d;
+			});
+			break;
+		default:
+	}
 }
 
 //Odabir mjeseca, parametar je red u JSON tablici

@@ -8,6 +8,9 @@
 	<link rel="stylesheet" type="text/css" href="infografika.css">
 </head>
 <body>
+	<!--Izbor kategorije-->
+	<div id="category_menu"></div>
+	
 	<!--Tooltip na grafu-->
 	<div id="tooltip" class="hidden">
 		<p id="djelatnost" style="font-weight: bold"></p>
@@ -35,10 +38,6 @@
 		</select>
 	</div>
 
-	<!--Izbor kategorije-->
-	<div id="category_menu">
-		
-	</div>
 	<script type="text/javascript">
 		var svg = d3.select("body")
 				.append("svg")
