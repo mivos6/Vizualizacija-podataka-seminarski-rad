@@ -83,6 +83,10 @@
 	margin-left: 25px;
 }
 
-.hidden {
-	visibility: collapse;
+#category_menu .hidden {
+	display: none;
+}
+
+#categoy_menu img {
+	pointer-events: click;
 }

@@ -243,9 +243,11 @@ function categoryMenu() {
 	var menu = d3.select("#category_menu");
 
 	menu.append("div")
-			.attr("class", "item")
+			.attr("class", "item selected")
 			.attr("id", "sve_djelatnosti")
-			.html("Sve djelatnosti");
+			.html("Sve djelatnosti")
+			.style("color", "white")
+			.style("background-color", "blue");
 
 	menu.append("div")
 			.attr("class", "item")
@@ -286,7 +288,7 @@ function categoryMenu() {
 						.html(function(d) { return d.name; });
 	});
 
-	d3.select("#sve_kategorije").select("img")
+	menu.select("#sve_kategorije").select("img")
 			.on("click", function() {
 				var l1 = d3.select(".level1");
 				var img = d3.select(this);
@@ -300,7 +302,7 @@ function categoryMenu() {
 				}
 
 			});
-	d3.select(".level1").selectAll(".collapsable").each(function(d, i) {
+	menu.select(".level1").selectAll(".collapsable").each(function() {
 		var l2 = d3.select(this.nextSibling);
 		var img = d3.select(this).select("img")
 				.on("click", function() {
@@ -314,6 +316,40 @@ function categoryMenu() {
 					}
 				});
 	});
+	
+	menu.selectAll(".item")
+			.on("mouseover", function() {
+				var item = d3.select(this);
+				if (!item.classed("selected")) {
+					item.transition()
+							.duration(150)
+							.style("color", "white")
+							.style("background-color", "blue");
+				}
+			})
+			.on("mouseout", function() {
+				var item = d3.select(this);
+				if (!item.classed("selected")) {
+					item.transition()
+							.duration(150)
+							.style("color", "black")
+							.style("background-color", "#CCC");
+				}
+			})
+			.on("click", function() {
+				menu.select(".selected")
+						.classed("selected", false)
+						.transition()
+						.duration(150)
+						.style("color", "black")
+						.style("background-color", "#CCC");
+				d3.select(this)
+						.classed("selected", true)
+						.transition()
+						.duration(250)
+						.style("color", "white")
+						.style("background-color", "blue");
+			});
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
