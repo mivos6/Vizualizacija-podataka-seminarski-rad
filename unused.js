@@ -100,3 +100,29 @@ function sortData() {
 		return d3.descending(neto[index][i].I_XII, neto[index][j].I_XII);
 	});
 }
+
+//Provjera je li djelatnost pripada kategorijama
+function isCategory(element) {
+	for (var i = 0; i < kategorije.length; i++) {
+		if (element.Djelatnost == kategorije[i].name)
+			return true;
+	}
+	return false;
+}
+
+//Provjera je li djelatnost pripada potkategorijama
+function isSubCategory(element) {
+	for (var i = 0; i < kategorije.length; i++) {
+		if (kategorije[i].children.length > 0) {
+			for (var j = 0; j < kategorije[i].children.length; j++) {
+				if (element.Djelatnost == kategorije[i].children[j].name)
+					return true;
+			}
+		}
+		else {
+			if (element.Djelatnost == kategorije[i].name)
+				return true;
+		}
+	}
+	return false;
+}

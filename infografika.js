@@ -13,9 +13,10 @@ var svgWidth = 800,
 	graphHeight = 400;
 
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
-var plotZ, plotN;	//podaci za iscrtavanja(uklonjene su kategorije koje objedinjuju više djelatnosti)
-var criteria = [],	//kriterij za iscrtavanje
-	index;			//indeks koji pokazuje na podatke za odabranu godinu
+var plotZ, plotN;		//podaci za iscrtavanje
+var criteria = [],		//kriterij za iscrtavanje
+	selectedItemName,
+	index;				//indeks koji pokazuje na podatke za odabranu godinu
 
 //inicijalno iscrtavanje grafa
 //dodavanje podataka i elemenata u svg
@@ -102,7 +103,7 @@ function plotData() {
 
 //Ažuriranje podataka na grafu
 function update() {
-	//Reskaliranje grafa
+	//Ponovno skaliranje grafa
 	xScale.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 1000), 
         d3.max(plotZ, function(d) { return selectMonth(d); })]);
 	yScale.domain([(d3.min(plotN, function(d, i) { 
@@ -438,32 +439,6 @@ function loadData(year) {
 		neto[index] = dat;
 		prosjekNeto[index] = neto[index].splice(0 ,1)[0];
 	});
-}
-
-//Provjera je li djelatnost pripada kategorijama
-function isCategory(element) {
-	for (var i = 0; i < kategorije.length; i++) {
-		if (element.Djelatnost == kategorije[i].name)
-			return true;
-	}
-	return false;
-}
-
-//Provjera je li djelatnost pripada potkategorijama
-function isSubCategory(element) {
-	for (var i = 0; i < kategorije.length; i++) {
-		if (kategorije[i].children.length > 0) {
-			for (var j = 0; j < kategorije[i].children.length; j++) {
-				if (element.Djelatnost == kategorije[i].children[j].name)
-					return true;
-			}
-		}
-		else {
-			if (element.Djelatnost == kategorije[i].name)
-				return true;
-		}
-	}
-	return false;
 }
 
 //Pretvaranje godine u odgovarajući indeks niza podataka i obrnuto
