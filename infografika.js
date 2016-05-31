@@ -23,7 +23,7 @@ var criteria = [],		//kriterij za iscrtavanje
 function plotData() {
 	//Skaliranje podataka na širinu grafa
 	xScale = d3.scale.linear()
-        	.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 1000), 
+        	.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 500), 
         		d3.max(plotZ, function(d) { return selectMonth(d); })])
         	.range([horizontalPadding, svgWidth - horizontalPadding]);
     yScale = d3.scale.linear()
@@ -104,7 +104,7 @@ function plotData() {
 //Ažuriranje podataka na grafu
 function update() {
 	//Ponovno skaliranje grafa
-	xScale.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 1000), 
+	xScale.domain([(d3.min(plotZ, function(d) { return selectMonth(d); }) - 500), 
         d3.max(plotZ, function(d) { return selectMonth(d); })]);
 	yScale.domain([(d3.min(plotN, function(d, i) { 
 			return selectMonth(d) != 0?selectMonth(d):selectMonth(plotN[i-1]); 
@@ -439,6 +439,11 @@ function loadData(year) {
 		neto[index] = dat;
 		prosjekNeto[index] = neto[index].splice(0 ,1)[0];
 	});
+}
+
+//Dodavanje pie chart-a
+function pieChart() {
+
 }
 
 //Pretvaranje godine u odgovarajući indeks niza podataka i obrnuto

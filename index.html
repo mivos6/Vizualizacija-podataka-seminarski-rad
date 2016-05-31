@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Statistika zaposlenosti</title>
+	<meta charset="utf-8"/>
+	<script type="text/javascript" src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script type="text/javascript" src="infografika.js"></script>
+	<link rel="stylesheet" type="text/css" href="infografika.css">
+</head>
+<body>
+	<!--Izbor kategorije-->
+	<div id="category_menu"></div>
+	
+	<!--Tooltip na grafu-->
+	<div id="tooltip" class="hidden">
+		<p id="djelatnost" style="font-weight: bold"></p>
+		<p>Broj zaposlenih: <span id="zaposleni"></span></p>
+		<p>Prosječna neto plaća: <span id="neto"></span></p>
+	</div>
+
+	<!--Izbor godine-->
+	<div id="select" style="visibility: hidden">
+		<select name="year" size="1" id="selectYear">
+			<option selected>2013</option>
+			<option>2012</option>
+			<option>2011</option>
+			<option>2010</option>
+			<option>2009</option>
+			<option>2008</option>
+			<option>2007</option>
+			<option>2006</option>
+			<option>2005</option>
+			<option>2004</option>
+			<option>2003</option>
+			<option>2002</option>
+			<option>2001</option>
+			<option>2000</option>
+		</select>
+	</div>
+
+	<script type="text/javascript">
+		var svg = d3.select("body")
+				.append("svg")
+				.attr("width", svgWidth)
+				.attr("height", svgHeight);
+
+		//Animacija učitavanja
+		var arc = d3.svg.arc()
+				.innerRadius(50)
+				.outerRadius(60)
+				.startAngle(0)
+				.endAngle(0.5*Math.PI);
+		var loading = svg.append("g")
+				.attr("transform", "translate(" + svgWidth/2 + "," + svgHeight/2 + ")")
+				.append("path")
+				.attr("d", arc);
+		loading.transition()
+				.ease("linear")
+				.duration(500)
+				.attr("transform", "rotate(" + 90 + ")")
+				.transition()
+				.ease("linear")
+				.delay(500)
+				.duration(500)
+				.attr("transform", "rotate(" + 180 + ")")
+				.transition()
+				.ease("linear")
+				.delay(1000)
+				.duration(500)
+				.attr("transform", "rotate(" + 270 + ")")
+				.transition()
+				.ease("linear")
+				.delay(1500)
+				.duration(500)
+				.attr("transform", "rotate(" + 360 + ")");
+
+		//Učitavanje podataka
+		d3.json("djelatnosti.json", function(err, dat) {
+			kategorije = dat;
+		});
+		for (var year = 2000; year < 2014; year++) {
+			loadData(year);
+		}
+
+		//Crtanje grafa
+		setTimeout(function() {
+			svg.selectAll("*").remove();
+			initialCriteria();
+			setDataToPlot();
+			plotData();
+			slider();
+			categoryMenu();
+			d3.select("#select")
+					.style("visibility", "visible");
+		}, 2000);
+
+		d3.select("#selectYear")
+				.on("change", function() {
+					currentYear = d3.select(this).node().value;
+					setDataToPlot();
+					update();
+				});
+	</script>
+</body>
+</html>
