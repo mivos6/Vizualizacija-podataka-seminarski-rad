@@ -7,7 +7,7 @@ var kategorije,
 	currentMonth = 1;
 
 var svgWidth = 800,
-	svgHeight = 800,
+	svgHeight = 1000,
 	horizontalPadding = 70,
 	verticalPadding = 40,
 	graphHeight = 400;
@@ -15,8 +15,10 @@ var svgWidth = 800,
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
 var plotZ, plotN;		//podaci za iscrtavanje
 var criteria = [],		//kriterij za iscrtavanje
-	selectedItemName,
+	selectedItem,		//ime odabrane stavke u meniju
 	index;				//indeks koji pokazuje na podatke za odabranu godinu
+
+var pie, arc;	//za kreiranje piecharta
 
 //inicijalno iscrtavanje grafa
 //dodavanje podataka i elemenata u svg
@@ -78,27 +80,8 @@ function plotData() {
 			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); })
 			.attr("r", 2)
 			.style("fill", function(d, i) { return colorScale(i); })
-			.on("mouseover", function(d, i) {	//Prikazivanje tooltipa na prelaz mišem preko točke
-				d3.select(this).transition()
-						.duration(250)
-						.attr("r", 10);
-				d3.select("#tooltip #djelatnost").text(d.Djelatnost);
-				d3.select("#tooltip #zaposleni").text(selectMonth(d));
-				d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
-				d3.select("#tooltip")
-						.style("top", d3.event.pageY + "px")
-						.style("left", function() {
-							var xPos = d3.event.pageX;
-							return ((xPos > svgWidth/2)?(xPos - 200):xPos) + "px";
-						})
-						.classed("hidden", false);
-			})
-			.on("mouseout", function() {	//Uklanjanje tooltipa
-				d3.select(this).transition()
-						.duration(250)
-						.attr("r", 2);
-				d3.select("#tooltip").classed("hidden", true);
-			});
+			.on("mouseover", showTooltip)
+			.on("mouseout", hideTooltip);
 }
 
 //Ažuriranje podataka na grafu
@@ -136,27 +119,8 @@ function update() {
 	
 	//Dodavanje prikaza tooltipa
 	graph.selectAll("circle")
-			.on("mouseover", function(d, i) {
-				d3.select(this).transition()
-						.duration(250)
-						.attr("r", 10);
-				d3.select("#tooltip #djelatnost").text(d.Djelatnost);
-				d3.select("#tooltip #zaposleni").text(selectMonth(d));
-				d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
-				d3.select("#tooltip")
-						.style("top", d3.event.pageY + "px")
-						.style("left", function() {
-							var xPos = d3.event.pageX;
-							return ((xPos > svgWidth/2)?(xPos - 200):xPos) + "px";
-						})
-						.classed("hidden", false);
-			})
-			.on("mouseout", function() {	//Uklanjanje tooltipa
-				d3.select(this).transition()
-						.duration(250)
-						.attr("r", 2);
-				d3.select("#tooltip").classed("hidden", true);
-			});
+			.on("mouseover", showTooltip)
+			.on("mouseout", hideTooltip);
 			
 	//Ponovo iscrtavanje osi
 	graph.select(".x.axis")
@@ -167,6 +131,31 @@ function update() {
 			.transition("linear")
 			.duration(500)
 			.call(yAxis)
+}
+
+//Prikaz tooltip-a
+function showTooltip(d, i) {
+	d3.select(this).transition()
+			.duration(250)
+			.attr("r", 10);
+	d3.select("#tooltip #djelatnost").text(d.Djelatnost);
+	d3.select("#tooltip #zaposleni").text(selectMonth(d));
+	d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
+	d3.select("#tooltip")
+			.style("top", d3.event.pageY + "px")
+			.style("left", function() {
+				var xPos = d3.event.pageX;
+				return ((xPos > svgWidth/2)?(xPos - 200):xPos) + "px";
+			})
+			.classed("hidden", false);
+}
+
+//Skrivanje tooltip-a
+function hideTooltip() {
+	d3.select(this).transition()
+			.duration(250)
+			.attr("r", 2);
+	d3.select("#tooltip").classed("hidden", true);
 }
 
 //Dodavanje slidera za odabir mjeseca u godini
@@ -423,6 +412,46 @@ function categoryMenu() {
 			});
 }
 
+function infoPanel() {
+	var infoPanel = d3.select("svg")
+			.append("g")
+			.attr("id", "infoPanel")
+			.attr("transform", "translate(300, 450)");
+
+	var pieChartRadius = 150;
+
+	pie = d3.layout.pie();
+	arc = d3.svg.arc()
+		.innerRadius(0)
+		.outerRadius(pieChartRadius);
+
+	var zeroes = [];
+	for (var i = 0; i < plotZ.length; i++)
+		zeroes[i] = 0;
+
+	pieChart = infoPanel.selectAll("path")
+			.data(pie(zeroes))
+			.enter()
+			.insert("path", "*")
+			.attr("d", arc)
+			.attr("fill", function(d, i) { return colorScale(i); })
+
+	pieChart.each(function(d) {
+		this.currentStart = d.startAngle;
+		this.curretEnd = d.endAngle;
+	})
+
+	pieChart.data(pie(plotZ, function(d) { return d.I_XII; }))
+				.transition()
+				.delay(function(d, i) { return 100*i; })
+				.duration(1000)
+				.attrTween("d", arcTween);
+}
+
+function updateInfoPanel() {
+
+}
+
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
 //Svaki element niza je JSON tablica za određenu godinu
 function loadData(year) {
@@ -439,11 +468,6 @@ function loadData(year) {
 		neto[index] = dat;
 		prosjekNeto[index] = neto[index].splice(0 ,1)[0];
 	});
-}
-
-//Dodavanje pie chart-a
-function pieChart() {
-
 }
 
 //Pretvaranje godine u odgovarajući indeks niza podataka i obrnuto
@@ -533,4 +557,18 @@ function getParentCategory(child) {
 			}
 		}
 	}
+}
+
+//Custom funkcija za interpolaciju kod animacije piechart-a
+function arcTween(d) {
+	var interpolateS = d3.interpolate(this.currentStart, d.startAngle);
+	var interpolateE = d3.interpolate(this.currentEnd, d.endAngle);
+
+	this.currentStart = interpolateS(1);
+	this.currentEnd = interpolateE(1);
+	return function(t) {
+		d.startAngle = interpolateS(t);
+		d.endAngle = interpolateE(t);
+		return arc(d);
+	};
 }
