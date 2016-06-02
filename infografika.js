@@ -13,10 +13,10 @@ var svgWidth = 800,
 	graphHeight = 400;
 
 var xScale, yScale, rScale, colorScale, xAxis, yAxis;
-var plotZ, plotN;		//podaci za iscrtavanje
-var criteria = [],		//kriterij za iscrtavanje
-	selectedItem,		//ime odabrane stavke u meniju
-	index;				//indeks koji pokazuje na podatke za odabranu godinu
+var plotZ, plotN, zeros;	//podaci za iscrtavanje
+var criteria = [],			//kriterij za iscrtavanje
+	selectedItem,			//ime odabrane stavke u meniju
+	index;					//indeks koji pokazuje na podatke za odabranu godinu
 
 var pie, arc;	//za kreiranje piecharta
 
@@ -98,29 +98,28 @@ function update() {
 
 	//Ažuriranje točaka na grafu
 	var circles = graph.selectAll("circle")
-			.data(plotZ, getKey);
+			.data(plotZ, getKey)
+			.on("mouseover", showTooltip)
+			.on("mouseout", hideTooltip);
 	circles.transition("linear")
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
-			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); });
-	//Dodavanje točaka
+			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); })
+	//Dodavanje novih točaka
 	circles.enter()
 			.append("circle")
 			.attr("cx", 0)
 			.attr("cy", svgHeight)
 			.attr("r", 2)
 			.style("fill", function(d, i) { return colorScale(i); })
+			.on("mouseover", showTooltip)
+			.on("mouseout", hideTooltip)
 			.transition()
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
-			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); });
-	//Uklanjanje točaka
+			.attr("cy", function(d, i) { return yScale(selectMonth(plotN[i])); })
+	//Uklanjanje točakakoje se ne prikazuju
 	circles.exit().remove();
-	
-	//Dodavanje prikaza tooltipa
-	graph.selectAll("circle")
-			.on("mouseover", showTooltip)
-			.on("mouseout", hideTooltip);
 			
 	//Ponovo iscrtavanje osi
 	graph.select(".x.axis")
@@ -138,8 +137,8 @@ function showTooltip(d, i) {
 	d3.select(this).transition()
 			.duration(250)
 			.attr("r", 10);
-	d3.select("#tooltip #djelatnost").text(d.Djelatnost);
-	d3.select("#tooltip #zaposleni").text(selectMonth(d));
+	d3.select("#tooltip #djelatnost").text(plotZ[i].Djelatnost);
+	d3.select("#tooltip #zaposleni").text(selectMonth(plotZ[i]));
 	d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
 	d3.select("#tooltip")
 			.style("top", d3.event.pageY + "px")
@@ -409,47 +408,89 @@ function categoryMenu() {
 				//Izmjena podataka i ponovno iscrtavanje prema kriteriju
 				setDataToPlot();
 				update();
+				updateInfoPanel();
 			});
 }
 
 function infoPanel() {
+	var pieChartRadius = 150;
+	//Container za infopanel
 	var infoPanel = d3.select("svg")
 			.append("g")
 			.attr("id", "infoPanel")
-			.attr("transform", "translate(300, 450)");
+			.attr("transform", "translate(300,450)");
 
-	var pieChartRadius = 150;
-
+	//Funkcije za crtanje piechart-a podkategorija
 	pie = d3.layout.pie();
 	arc = d3.svg.arc()
-		.innerRadius(0)
-		.outerRadius(pieChartRadius);
+			.innerRadius(0)
+			.outerRadius(pieChartRadius);
 
-	var zeroes = [];
+	//Početni kutovi piechart-a su 0
+	zeros = [];
 	for (var i = 0; i < plotZ.length; i++)
-		zeroes[i] = 0;
-
-	pieChart = infoPanel.selectAll("path")
-			.data(pie(zeroes))
+		zeros[i] = 0;
+	pieChart = infoPanel.append("g")
+			.attr("id", "pieChart")
+			.attr("transform", "translate("+pieChartRadius+","+pieChartRadius+")")
+			.selectAll("path")
+			.data(pie(zeros))
 			.enter()
 			.insert("path", "*")
 			.attr("d", arc)
-			.attr("fill", function(d, i) { return colorScale(i); })
+			.attr("fill", function(d, i) { return colorScale(i); });
 
+	//Pamti se trenutni kut radi interpolacije
 	pieChart.each(function(d) {
 		this.currentStart = d.startAngle;
-		this.curretEnd = d.endAngle;
-	})
+		this.currentEnd = d.endAngle;
+	});
 
-	pieChart.data(pie(plotZ, function(d) { return d.I_XII; }))
-				.transition()
-				.delay(function(d, i) { return 100*i; })
-				.duration(1000)
-				.attrTween("d", arcTween);
+	//Dohvaćanje vrijednosti za iscrtavanje
+	pie.value(function(d) { return d.I_XII; })
+			.sort(null);
+	//Animacija piechart-a
+	pieChart.data(pie(plotZ))
+			.on("mouseover", showTooltip)
+			.on("mouseout", hideTooltip)
+			.transition()
+			.delay(function(d, i) { return 5*i; })
+			.duration(200)
+			.ease("linear")
+			.attrTween("d", arcTween);
+
 }
 
 function updateInfoPanel() {
+	var pieChart = d3.select("#infoPanel #pieChart").selectAll("path");
+	pie = d3.layout.pie();
 
+	//Animacija vraćanja piechart-a na 0
+	pieChart.data(pie(zeros))
+			.transition()
+			.delay(function(d, i) { return 5*zeros.length - 5*i; })
+			.duration(200)
+			.attrTween("d", arcTween);
+
+	//Postavljanje nula na novu dužinu plotZ
+	zeros = [];
+	for (var i = 0; i < plotZ.length; i++)
+		zeros[i] = 0;
+
+	//Dohvaćanje vrijednosti za iscrtavanje
+	pie.value(function(d) { return d.I_XII; })
+			.sort(null);
+	//Animacija ponovnog popunjavanja piechart-a
+	setTimeout(function() {
+		pieChart.data(pie(plotZ))
+				.on("mouseover", showTooltip)
+				.on("mouseout", hideTooltip)
+				.transition()
+				.delay(function(d, i) { return 5*i; })
+				.duration(200)
+				.ease("linear")
+				.attrTween("d", arcTween);
+	}, 1500);
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
@@ -474,13 +515,12 @@ function loadData(year) {
 function yearToIndex(year) { return year - 2000; }
 function indexToYear(index) { return index + 2000; }
 
-//Funkcija za dohvaćanje ključa kod data join-a
+//Funkcije za dohvaćanje ključa kod data join-a
 function getKey(d) {
-	return d.Djelatnost;
+	return d.Djelatnost;	//Djelatnost je jedinstveno svojstvo podataka o zaposlenima 
 }
-
 function getName(d) {
-	return d.name;
+	return d.name;			//name je jedinstveno svojstvo svake kategorije
 }
 
 //Postvljanje podatak za iscrtavanje
@@ -566,6 +606,7 @@ function arcTween(d) {
 
 	this.currentStart = interpolateS(1);
 	this.currentEnd = interpolateE(1);
+
 	return function(t) {
 		d.startAngle = interpolateS(t);
 		d.endAngle = interpolateE(t);
