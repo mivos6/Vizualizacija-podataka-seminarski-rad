@@ -238,6 +238,7 @@ function slider() {
 					currentMonth = newCurrentMonth;
 					update();
 				}
+				updateInfoPanel(selectedItem);
 			})
 			.on("dragend", function() {
 				d3.select(this)
@@ -329,8 +330,8 @@ function categoryMenu() {
 				});
 	});
 	
-	//Promjena izgleda elemenata izbornika kod prelaska mišem
 	menu.selectAll(".item")
+			//Promjena izgleda elemenata izbornika kod prelaska mišem
 			.on("mouseover", function() {
 				var item = d3.select(this);
 				if (!item.classed("selected")) {
@@ -349,7 +350,9 @@ function categoryMenu() {
 							.style("background-color", "#CCC");
 				}
 			})
+			//Promjena kriterija za iscrtavanje klikom na kategoriju
 			.on("click", function(d) {
+				var currentlySelected = selectedItem;
 				var item = d3.select(this);
 				
 				menu.select(".selected")
@@ -367,7 +370,8 @@ function categoryMenu() {
 				//Promjena kriterija za iscrtavanje
 				criteria = [];
 				switch(item.attr("id")) {
-					case "sve_djelatnosti":
+					case "sve_djelatnosti": 	//Prikaz svih djelatnosti
+						selectedItem = "Sve djelatnosti";
 						var count = 0;
 						kategorije.forEach(function(d) {
 							if (d.children.length > 0) {
@@ -378,15 +382,17 @@ function categoryMenu() {
 							else criteria[count++] = d.name;
 						});
 						break;
-					case "sve_kategorije":
+					case "sve_kategorije": 		//Prikaz svih kategorija
+						selectedItem = "Sve kategorija";
 						var count = 0;
 						kategorije.forEach(function(d) {
 							criteria[count++] = d.name;
 						});
 						break;
 					default:
+						selectedItem = item.node().__data__.name;
 						var count = 0;
-						if (d.children) {
+						if (d.children) {		//Ako postoje podkategorije prikazuju se
 							if (d.children.length > 0) {
 								d.children.forEach(function(d) {
 									criteria[count++] = d.name;
@@ -398,7 +404,7 @@ function categoryMenu() {
 								});
 							}
 						}
-						else {
+						else {	//Ako nema podkategorija onda prikaži sve podkategorije trenutne grupe
 							var parent = getParentCategory(d);
 							parent.children.forEach(function(d) {
 								criteria[count++] = d.name;
@@ -408,7 +414,7 @@ function categoryMenu() {
 				//Izmjena podataka i ponovno iscrtavanje prema kriteriju
 				setDataToPlot();
 				update();
-				updateInfoPanel();
+				updateInfoPanel(currentlySelected);
 			});
 }
 
@@ -461,27 +467,43 @@ function infoPanel() {
 
 }
 
-function updateInfoPanel() {
+function updateInfoPanel(currentlySelected) {
 	var pieChart = d3.select("#infoPanel #pieChart").selectAll("path");
 	pie = d3.layout.pie();
 
-	//Animacija vraćanja piechart-a na 0
-	pieChart.data(pie(zeros))
-			.transition()
-			.delay(function(d, i) { return 5*zeros.length - 5*i; })
-			.duration(200)
-			.attrTween("d", arcTween);
+	if (selectedItem != currentlySelected) {
+		//Animacija vraćanja piechart-a na 0
+		pieChart.data(pie(zeros))
+				.transition()
+				.delay(function(d, i) { return 5*zeros.length - 5*i; })
+				.duration(200)
+				.attrTween("d", arcTween);
 
-	//Postavljanje nula na novu dužinu plotZ
-	zeros = [];
-	for (var i = 0; i < plotZ.length; i++)
-		zeros[i] = 0;
+		//Postavljanje nula na novu dužinu plotZ
+		zeros = [];
+		for (var i = 0; i < plotZ.length; i++)
+			zeros[i] = 0;
 
-	//Dohvaćanje vrijednosti za iscrtavanje
-	pie.value(function(d) { return d.I_XII; })
-			.sort(null);
-	//Animacija ponovnog popunjavanja piechart-a
-	setTimeout(function() {
+		//Dohvaćanje vrijednosti za iscrtavanje
+		pie.value(function(d) { return selectMonth(d); })
+				.sort(null);
+		//Animacija ponovnog popunjavanja piechart-a
+		setTimeout(function() {
+			pieChart.data(pie(plotZ))
+					.on("mouseover", showTooltip)
+					.on("mouseout", hideTooltip)
+					.transition()
+					.delay(function(d, i) { return 5*i; })
+					.duration(200)
+					.ease("linear")
+					.attrTween("d", arcTween);
+		}, 1000);
+	}
+	else {
+		//Dohvaćanje vrijednosti za iscrtavanje
+		pie.value(function(d) { return selectMonth(d); })
+				.sort(null);
+		//Animacija ponovnog popunjavanja piechart-a
 		pieChart.data(pie(plotZ))
 				.on("mouseover", showTooltip)
 				.on("mouseout", hideTooltip)
@@ -490,7 +512,7 @@ function updateInfoPanel() {
 				.duration(200)
 				.ease("linear")
 				.attrTween("d", arcTween);
-	}, 1500);
+	}
 }
 
 //Učitavanje podatakaiz .json datoteka i spremanje u niz
@@ -575,6 +597,7 @@ function selectMonth(d) {
 //Inicijalno postavi kriterij za iscrtavanje
 //tako da se iscrtaju sve djelatnosti
 function initialCriteria() {
+	selectedItem = "Sve djelatnosti";
 	var count = 0;
 	kategorije.forEach(function(d) {
 		if (d.children.length > 0) {
