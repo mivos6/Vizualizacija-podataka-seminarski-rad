@@ -97,7 +97,8 @@ function plotData() {
 			.style("stroke-width", "0.5px")
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
-			.on("mousemove", moveTooltip);
+			.on("mousemove", moveTooltip)
+			.on("click", selectInMenu);
 }
 
 //Ažuriranje podataka na grafu
@@ -120,12 +121,19 @@ function update() {
 
 	var graph = d3.select("#graph");
 
+	//Onemogućava se miš da ne bi prekinuo animaciju
+	graph.selectAll("circle").style("pointer-events", "none");
+
 	//Ažuriranje točaka na grafu
 	var circles = graph.selectAll("circle")
 			.data(plotZ, getKey)
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
-			.on("mousemove", moveTooltip);
+			.on("mousemove", moveTooltip)
+			.on("click", function(d) {
+				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
+					return selectInMenu(d);
+			});
 	circles.transition("linear")
 			.duration(500)
 			.attr("r", r)
@@ -143,6 +151,10 @@ function update() {
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
+			.on("click", function(d) {
+				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
+					return selectInMenu(d);
+			})
 			.transition()
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
@@ -159,6 +171,8 @@ function update() {
 			.transition("linear")
 			.duration(500)
 			.call(yAxis)
+
+	graph.selectAll("circle").style("pointer-events", "auto");
 }
 
 //Prikaz tooltip-a
@@ -171,6 +185,7 @@ function showTooltip(d, i) {
 			.style("left", d3.event.pageX + "px")
 			.classed("hidden", false);
 
+	//Dodavanje overlay-a na graf ili piechart
 	var selected = d3.select(this);
 	switch (this.nodeName) {
 		case "circle":
@@ -183,7 +198,7 @@ function showTooltip(d, i) {
 					.attr("cy", y)
 					.attr("r", r)
 					.attr("id", "overlay")
-					.style("fill", "lightblue")
+					.style("fill", "blue")
 					.style("opacity", 0.6)
 					.style("pointer-events", "none");
 			break;
@@ -193,7 +208,7 @@ function showTooltip(d, i) {
 					.append("path")
 					.attr("d", d)
 					.attr("id", "overlay")
-					.style("fill", "lightblue")
+					.style("fill", "blue")
 					.style("opacity", 0.6)
 					.style("pointer-events", "none");
 			break;
@@ -294,7 +309,7 @@ function slider() {
 					currentMonth = newCurrentMonth;
 					update();
 				}
-				updateInfoPanel(selectedItem);
+				updatePieChart(selectedItem);
 			})
 			.on("dragend", function() {
 				d3.select(this)
@@ -407,73 +422,100 @@ function categoryMenu() {
 				}
 			})
 			//Promjena kriterija za iscrtavanje klikom na kategoriju
-			.on("click", function(d) {
-				var currentlySelected = selectedItem;
-				var item = d3.select(this);
-				
-				menu.select(".selected")
-						.classed("selected", false)
-						.transition()
-						.duration(150)
-						.style("color", "black")
-						.style("background-color", "#CCC");
-				item.classed("selected", true)
-						.transition()
-						.duration(250)
-						.style("color", "white")
-						.style("background-color", "blue");
-						
-				//Promjena kriterija za iscrtavanje
-				criteria = [];
-				switch(item.attr("id")) {
-					case "sve_djelatnosti": 	//Prikaz svih djelatnosti
-						selectedItem = "Sve djelatnosti";
-						var count = 0;
-						kategorije.forEach(function(d) {
-							if (d.children.length > 0) {
-								d.children.forEach(function(d) {
-									criteria[count++] = d.name;
-								});
+			.on("click.select", selectItem);
+
+	//Dodavanje overlay-a kad klikom na podkategoriju
+	menu.selectAll(".level2 div")
+			.on("click.overlay", function(d) {
+				d3.select("#overlay1").remove();
+				var name = d.name;
+				var selected;
+				d3.select("#infoPanel #pieChart").selectAll("path")
+						.each(function(d) {
+							if (name == d.data.Djelatnost) {
+								selected = d3.select(this);
 							}
-							else criteria[count++] = d.name;
 						});
-						break;
-					case "sve_kategorije": 		//Prikaz svih kategorija
-						selectedItem = "Sve kategorija";
-						var count = 0;
-						kategorije.forEach(function(d) {
-							criteria[count++] = d.name;
-						});
-						break;
-					default:
-						selectedItem = item.node().__data__.name;
-						var count = 0;
-						if (d.children) {		//Ako postoje podkategorije prikazuju se
-							if (d.children.length > 0) {
-								d.children.forEach(function(d) {
-									criteria[count++] = d.name;
-								});
-							}
-							else {
-								kategorije.forEach(function(d) {
-									criteria[count++] = d.name;
-								});
-							}
-						}
-						else {	//Ako nema podkategorija onda prikaži sve podkategorije trenutne grupe
-							var parent = getParentCategory(d.name);
-							parent.children.forEach(function(d) {
-								criteria[count++] = d.name;
-							});
-						}
-				}
-				//Izmjena podataka i ponovno iscrtavanje prema kriteriju
-				setDataToPlot();
-				update();
-				updateInfoPanel(currentlySelected);
+				var d = selected.attr("d");
+				d3.select("#infoPanel #pieChart")
+						.append("path")
+						.attr("d", d)
+						.attr("id", "overlay1")
+						.style("fill", "blue")
+						.style("opacity", 0.6)
+						.style("pointer-events", "none");
 			});
 }
 
+//Odabir stavke klikom miša
+function selectItem(d) {
+	d3.select("#overlay1").remove();
+	var currentlySelected = selectedItem;
+	var item = d3.select(this);
+	
+	d3.select("#category_menu").select(".selected")
+			.classed("selected", false)
+			.transition()
+			.duration(150)
+			.style("color", "black")
+			.style("background-color", "#CCC");
+	item.classed("selected", true)
+			.transition()
+			.duration(250)
+			.style("color", "white")
+			.style("background-color", "blue");
+			
+	//Promjena kriterija za iscrtavanje
+	criteria = [];
+	switch(item.attr("id")) {
+		case "sve_djelatnosti": 	//Prikaz svih djelatnosti
+			selectedItem = "Sve djelatnosti";
+			var count = 0;
+			kategorije.forEach(function(d) {
+				if (d.children.length > 0) {
+					d.children.forEach(function(d) {
+						criteria[count++] = d.name;
+					});
+				}
+				else criteria[count++] = d.name;
+			});
+			break;
+		case "sve_kategorije": 		//Prikaz svih kategorija
+			selectedItem = "Sve kategorije";
+			var count = 0;
+			kategorije.forEach(function(d) {
+				criteria[count++] = d.name;
+			});
+			break;
+		default:
+			selectedItem = item.node().__data__.name;
+			var count = 0;
+			if (d.children) {		//Ako postoje podkategorije prikazuju se
+				if (d.children.length > 0) {
+					d.children.forEach(function(d) {
+						criteria[count++] = d.name;
+					});
+				}
+				else {
+					kategorije.forEach(function(d) {
+						criteria[count++] = d.name;
+					});
+				}
+			}
+			else {	//Ako nema podkategorija onda prikaži sve podkategorije trenutne grupe
+				var parent = getParentCategory(d.name);
+				parent.children.forEach(function(d) {
+					criteria[count++] = d.name;
+				});
+			}
+	}
+	//Izmjena podataka i ponovno iscrtavanje prema kriteriju
+	setDataToPlot();
+	update();
+	updatePieChart(currentlySelected);
+}
+
+//Dodavanje grafike sdodatnim informacijama
 function infoPanel() {
 	var pieChartRadius = 150;
 	//Container za infopanel
@@ -517,7 +559,7 @@ function infoPanel() {
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
 			.style("fill", function(d) { return getColor(d.data); })
-			.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
+			//.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 			.style("stroke", "white")
 			.style("stroke-width", "0.5px")
 			.transition()
@@ -528,7 +570,8 @@ function infoPanel() {
 
 }
 
-function updateInfoPanel(currentlySelected) {
+//Ažuriranje piechart-a
+function updatePieChart(currentlySelected) {
 	var pieChart = d3.select("#infoPanel #pieChart").selectAll("path");
 	pie = d3.layout.pie();
 
@@ -557,7 +600,7 @@ function updateInfoPanel(currentlySelected) {
 					.on("mouseout", hideTooltip)
 					.on("mousemove", moveTooltip)
 					.style("fill", function(d) { return getColor(d.data); })
-					.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
+					//.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 					.transition()
 					.delay(function(d, i) { return 5*i; })
 					.duration(200)
@@ -580,6 +623,68 @@ function updateInfoPanel(currentlySelected) {
 				.duration(200)
 				.ease("linear")
 				.attrTween("d", arcTween);
+	}
+}
+
+//Odabir djelatnosti u meniju klikom na točku grafa
+//(Samo kad su odabrane sve djelatnosti ili sve kategorije)
+function selectInMenu(d) {
+	var name = d.Djelatnost;
+	var menu = d3.select("#category_menu");
+
+	//Collapse-anje prvog nivoa
+	menu.select("#sve_kategorije").select("img")
+			.attr("src", "images/minus.png");
+	var level1 = menu.select(".level1")
+			.classed("hidden", false);
+
+	//Traženje indeksa djelatnosti u kategorijama
+	var i = 0;
+	var parent = getParentCategory(name)
+	for (i = 0; i < kategorije.length; i++) {
+		if (parent == kategorije[i])
+			break;
+	}
+
+	if (name == parent.name) {	//određivanje da li je označena kategorija ili podkategorija
+		//Označavanje kategorije koja je odabrana
+		d3.select("#category_menu").select(".selected")
+				.classed("selected", false)
+				.transition()
+				.duration(150)
+				.style("color", "black")
+				.style("background-color", "#CCC");
+		level1.select("#kategorija" + i)
+				.classed("selected", true)
+				.transition()
+				.duration(250)
+				.style("color", "white")
+				.style("background-color", "blue");
+	}
+	else {
+		//Collapse-anje odgovarajuće kategorije
+		level1.select("#kategorija" + i).select("img")
+				.attr("src", "images/minus.png");
+		var level2 = level1.select("#djelatnosti" + i)
+				.classed("hidden", false);
+
+		//Označavanje pdkategorije koja je odabrana 
+		level2.selectAll("div").each(function(d) {
+			if (name = d.name) {
+				d3.select("#category_menu").select(".selected")
+					.classed("selected", false)
+					.transition()
+					.duration(150)
+					.style("color", "black")
+					.style("background-color", "#CCC");
+				d3.select(this)
+					.classed("selected", true)
+					.transition()
+					.duration(250)
+					.style("color", "white")
+					.style("background-color", "blue");
+			}
+		})
 	}
 }
 
