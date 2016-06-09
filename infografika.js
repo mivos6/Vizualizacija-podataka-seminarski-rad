@@ -96,7 +96,8 @@ function plotData() {
 			.style("stroke", "black")
 			.style("stroke-width", "0.5px")
 			.on("mouseover", showTooltip)
-			.on("mouseout", hideTooltip);
+			.on("mouseout", hideTooltip)
+			.on("mousemove", moveTooltip);
 }
 
 //Ažuriranje podataka na grafu
@@ -123,7 +124,8 @@ function update() {
 	var circles = graph.selectAll("circle")
 			.data(plotZ, getKey)
 			.on("mouseover", showTooltip)
-			.on("mouseout", hideTooltip);
+			.on("mouseout", hideTooltip)
+			.on("mousemove", moveTooltip);
 	circles.transition("linear")
 			.duration(500)
 			.attr("r", r)
@@ -140,6 +142,7 @@ function update() {
 			.style("fill", getColor)
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
+			.on("mousemove", moveTooltip)
 			.transition()
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
@@ -165,10 +168,7 @@ function showTooltip(d, i) {
 	d3.select("#tooltip #neto").text(selectMonth(plotN[i]));
 	d3.select("#tooltip")
 			.style("top", d3.event.pageY + "px")
-			.style("left", function() {
-				var xPos = d3.event.pageX;
-				return ((xPos > svgWidth/2)?(xPos - 200):xPos) + "px";
-			})
+			.style("left", d3.event.pageX + "px")
 			.classed("hidden", false);
 
 	var selected = d3.select(this);
@@ -198,6 +198,13 @@ function showTooltip(d, i) {
 					.style("pointer-events", "none");
 			break;
 	}
+}
+
+//Promjena pozicije tooltip-a
+function moveTooltip() {
+	d3.select("#tooltip")
+			.style("top", d3.event.pageY + "px")
+			.style("left", d3.event.pageX + "px")
 }
 
 //Skrivanje tooltip-a
@@ -508,6 +515,7 @@ function infoPanel() {
 	pieChart.data(pie(plotZ))
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
+			.on("mousemove", moveTooltip)
 			.style("fill", function(d) { return getColor(d.data); })
 			.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 			.style("stroke", "white")
@@ -547,6 +555,7 @@ function updateInfoPanel(currentlySelected) {
 			pieChart.data(pie(plotZ))
 					.on("mouseover", showTooltip)
 					.on("mouseout", hideTooltip)
+					.on("mousemove", moveTooltip)
 					.style("fill", function(d) { return getColor(d.data); })
 					.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 					.transition()
@@ -565,6 +574,7 @@ function updateInfoPanel(currentlySelected) {
 		pieChart.data(pie(plotZ))
 				.on("mouseover", showTooltip)
 				.on("mouseout", hideTooltip)
+				.on("mousemove", moveTooltip)
 				.transition()
 				.delay(function(d, i) { return 5*i; })
 				.duration(200)
