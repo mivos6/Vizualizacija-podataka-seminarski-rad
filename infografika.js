@@ -568,6 +568,39 @@ function infoPanel() {
 			.ease("linear")
 			.attrTween("d", arcTween);
 
+	//Dodavanje linechart-a
+	var lineChart = infoPanel.append("g")
+			.attr("id", "lineChart")
+			.attr("transform", "translate(40,"+ (2*pieChartRadius + 20) +")");
+
+	var lineChartXScale = d3.scale.linear()
+        	.domain([1,12])
+        	.range([0, 2*pieChartRadius]);
+    
+    var lineChartYScale = d3.scale.linear()
+			.domain([(d3.min(getNumeric(plotN[0])) - 100),
+				d3.max(getNumeric(plotN[0]))])
+        	.range([0, pieChartRadius]);
+
+    var lineChartXAxis = d3.svg.axis()
+			.scale(lineChartXScale)
+			.orient("bottom")
+			.ticks(12);
+
+    var lineChartYAxis = d3.svg.axis()
+			.scale(lineChartYScale)
+			.orient("left")
+			.ticks(10);
+	
+	//Crtanje osi
+	lineChart.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + pieChartRadius + ")")
+			.call(lineChartXAxis);
+	lineChart.append("g")
+			.attr("class", "y axis")
+			//.attr("transform", "translate(0,0)")
+			.call(lineChartYAxis);
 }
 
 //Ažuriranje piechart-a
@@ -736,8 +769,9 @@ function setDataToPlot() {
 
 //Odabir mjeseca, parametar je red u JSON tablici
 //Ovisno o varijabli currentMonth odabire se stupac
-function selectMonth(d) {
-	switch (currentMonth) {
+function selectMonth(d, month) {
+	if (typeof month == 'undefined') month = currentMonth;
+	switch (month) {
 		case 1:
 			return d.I;
 		case 2:
@@ -751,7 +785,7 @@ function selectMonth(d) {
 		case 6:
 			return d.VI;
 		case 7:
-			return d.VII
+			return d.VII;
 		case 8:
 			return d.VIII;
 		case 9:
@@ -765,6 +799,11 @@ function selectMonth(d) {
 		default:
 			return d.I_XII;
 	}
+}
+
+//Vađenje vrijednosti mjeseci za objekt djelatnosti
+function getNumeric(d) {
+	return [d.I, d.II, d.III, d.IV, d.V, d.VI, d.VII, d.VIII, d.IX, d.X, d.XI, d.XII];
 }
 
 //Inicijalno postavi kriterij za iscrtavanje
