@@ -121,8 +121,8 @@ function update() {
 
 	var graph = d3.select("#graph");
 
-	//Onemogućava se miš da ne bi prekinuo animaciju
-	graph.selectAll("circle").style("pointer-events", "none");
+	graph.select("#overlay").remove();
+	d3.select("#tooltip").classed("hidden", true);
 
 	//Ažuriranje točaka na grafu
 	var circles = graph.selectAll("circle")
@@ -130,10 +130,13 @@ function update() {
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
+			.on("click", selectInMenu);
+			/*
 			.on("click", function(d) {
 				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
 					return selectInMenu(d);
 			});
+			*/
 	circles.transition("linear")
 			.duration(500)
 			.attr("r", r)
@@ -151,10 +154,13 @@ function update() {
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
+			.on("click", selectInMenu)
+			/*
 			.on("click", function(d) {
 				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
 					return selectInMenu(d);
-			})
+			});
+			*/
 			.transition()
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
@@ -171,8 +177,6 @@ function update() {
 			.transition("linear")
 			.duration(500)
 			.call(yAxis)
-
-	graph.selectAll("circle").style("pointer-events", "auto");
 }
 
 //Prikaz tooltip-a
@@ -423,35 +427,14 @@ function categoryMenu() {
 			})
 			//Promjena kriterija za iscrtavanje klikom na kategoriju
 			.on("click.select", selectItem);
-
-	//Dodavanje overlay-a kad klikom na podkategoriju
-	menu.selectAll(".level2 div")
-			.on("click.overlay", function(d) {
-				d3.select("#overlay1").remove();
-				var name = d.name;
-				var selected;
-				d3.select("#infoPanel #pieChart").selectAll("path")
-						.each(function(d) {
-							if (name == d.data.Djelatnost) {
-								selected = d3.select(this);
-							}
-						});
-				var d = selected.attr("d");
-				d3.select("#infoPanel #pieChart")
-						.append("path")
-						.attr("d", d)
-						.attr("id", "overlay1")
-						.style("fill", "blue")
-						.style("opacity", 0.6)
-						.style("pointer-events", "none");
-			});
 }
 
 //Odabir stavke klikom miša
-function selectItem(d) {
+function selectItem(d, item) {
+	//Defaultna vrijednost selekcije item
+	if (typeof item != "object") item = d3.select(this);
 	d3.select("#overlay1").remove();
 	var currentlySelected = selectedItem;
-	var item = d3.select(this);
 	
 	d3.select("#category_menu").select(".selected")
 			.classed("selected", false)
@@ -513,6 +496,32 @@ function selectItem(d) {
 	setDataToPlot();
 	update();
 	updatePieChart(currentlySelected);
+
+	//Dodaj overlay na odabrani dio piechart-a
+	d3.select("#overlay1").remove();
+	var name = selectedItem;
+	//Overlay stavljam samo ako je odabrana podkategorija
+	if (name != "Sve djelatnosti" && name != "Sve kategorije" && !(name == getParentCategory(name))) {
+		var selected;
+		d3.select("#infoPanel #pieChart").selectAll("path")
+				.each(function(d) {
+					if (d) {
+						if (name == d.data.Djelatnost) {
+							selected = d3.select(this);
+						}
+					}
+				});
+		if (selected) {
+			var d = selected.attr("d");
+			d3.select("#infoPanel #pieChart")
+					.append("path")
+					.attr("d", d)
+					.attr("id", "overlay1")
+					.style("fill", "blue")
+					.style("opacity", 0.6)
+					.style("pointer-events", "none");
+		}
+	}
 }
 
 //Dodavanje grafike sdodatnim informacijama
@@ -551,15 +560,15 @@ function infoPanel() {
 	});
 
 	//Dohvaćanje vrijednosti za iscrtavanje
-	pie.value(function(d) { return d.I_XII; })
+	pie.value(function(d) { return selectMonth(d); })
 			.sort(null);
 	//Animacija piechart-a
 	pieChart.data(pie(plotZ))
 			.on("mouseover", showTooltip)
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
+			.on("click", function(d) { selectInMenu(d.data); })
 			.style("fill", function(d) { return getColor(d.data); })
-			//.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 			.style("stroke", "white")
 			.style("stroke-width", "0.5px")
 			.transition()
@@ -578,7 +587,7 @@ function infoPanel() {
         	.range([0, 2*pieChartRadius]);
     
     var lineChartYScale = d3.scale.linear()
-			.domain([(d3.min(getNumeric(plotN[0])) - 100),
+			.domain([d3.min(getNumeric(plotN[0])),
 				d3.max(getNumeric(plotN[0]))])
         	.range([0, pieChartRadius]);
 
@@ -599,8 +608,35 @@ function infoPanel() {
 			.call(lineChartXAxis);
 	lineChart.append("g")
 			.attr("class", "y axis")
-			//.attr("transform", "translate(0,0)")
 			.call(lineChartYAxis);
+
+	//Crtanje grafa
+	var data = getNumeric(plotN[0]);
+	var lines = lineChart.selectAll(".graph_line")
+			.data(data.slice(0, data.length - 1))
+			.enter()
+			.append("line")
+			.attr("class", "graph_line")
+			.attr("id", function(d, i) { return "graph_line" + i})
+			.attr("x1", function(d, i) { return lineChartXScale(i + 1); })
+			.attr("y1", function(d) { return lineChartYScale(d); })
+			.attr("x2", function(d, i) { return lineChartXScale(i + 2); })
+			.attr("y2", function(d, i) { return lineChartYScale(data[i + 1]); })
+			.style("stroke", "blue");
+
+	for (i = 10; i >= 0; i--) {
+		var current = d3.select("#graph_line" + i);
+		var x = current.attr("x1");
+		var y = current.attr("y1");
+		current.transition()
+				.delay(11000 - 1000*i)
+				.duration(1000)
+				.attr("x2", x)
+				.attr("y2", y);		
+	}
+	//Skrivanje linecharta
+	//lineChart.selectAll("*")
+	//		.style("opacity", 0);
 }
 
 //Ažuriranje piechart-a
@@ -632,8 +668,8 @@ function updatePieChart(currentlySelected) {
 					.on("mouseover", showTooltip)
 					.on("mouseout", hideTooltip)
 					.on("mousemove", moveTooltip)
+					.on("click", function(d) { selectInMenu(d.data, d3.select(this)); })
 					.style("fill", function(d) { return getColor(d.data); })
-					//.style("opacity", function(d, i) { return alphaScale(selectMonth(plotN[i])); })
 					.transition()
 					.delay(function(d, i) { return 5*i; })
 					.duration(200)
@@ -651,6 +687,7 @@ function updatePieChart(currentlySelected) {
 				.on("mouseover", showTooltip)
 				.on("mouseout", hideTooltip)
 				.on("mousemove", moveTooltip)
+				.on("click", function(d) { selectInMenu(d.data, d3.select(this)); })
 				.transition()
 				.delay(function(d, i) { return 5*i; })
 				.duration(200)
@@ -681,18 +718,9 @@ function selectInMenu(d) {
 
 	if (name == parent.name) {	//određivanje da li je označena kategorija ili podkategorija
 		//Označavanje kategorije koja je odabrana
-		d3.select("#category_menu").select(".selected")
-				.classed("selected", false)
-				.transition()
-				.duration(150)
-				.style("color", "black")
-				.style("background-color", "#CCC");
-		level1.select("#kategorija" + i)
-				.classed("selected", true)
-				.transition()
-				.duration(250)
-				.style("color", "white")
-				.style("background-color", "blue");
+		var s = level1.select("#kategorija" + i)
+		console.log(s)
+		selectItem(s.node().__data__, s);
 	}
 	else {
 		//Collapse-anje odgovarajuće kategorije
@@ -703,21 +731,10 @@ function selectInMenu(d) {
 
 		//Označavanje pdkategorije koja je odabrana 
 		level2.selectAll("div").each(function(d) {
-			if (name = d.name) {
-				d3.select("#category_menu").select(".selected")
-					.classed("selected", false)
-					.transition()
-					.duration(150)
-					.style("color", "black")
-					.style("background-color", "#CCC");
-				d3.select(this)
-					.classed("selected", true)
-					.transition()
-					.duration(250)
-					.style("color", "white")
-					.style("background-color", "blue");
+			if (name == d.name) {
+				selectItem(d, d3.select(this));
 			}
-		})
+		});
 	}
 }
 

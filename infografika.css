@@ -94,3 +94,8 @@
 #categoy_menu img {
 	pointer-events: click;
 }
+
+.graph_line {
+	fill: none;
+	stroke-width: 2px;
+}
