@@ -25,6 +25,10 @@
 	pointer-events: none;
 }
 
+.hidden {
+	visibility:collapse;
+}
+
 #tooltip.hidden {
 	display: none;
 }

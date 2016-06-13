@@ -9,7 +9,7 @@
 </head>
 <body>
 	<!--Izbor kategorije-->
-	<div id="category_menu"></div>
+	<div id="category_menu" class="hidden"></div>
 	
 	<!--Tooltip na grafu-->
 	<div id="tooltip" class="hidden">
@@ -45,62 +45,61 @@
 				.attr("height", svgHeight);
 
 		//Animacija učitavanja
-		var arc = d3.svg.arc()
-				.innerRadius(50)
-				.outerRadius(60)
-				.startAngle(0)
-				.endAngle(0.5*Math.PI);
-		var loading = svg.append("g")
-				.attr("transform", "translate(" + svgWidth/2 + "," + svgHeight/2 + ")")
+		var loadAnim = svg.append("g")
+				.attr("transform", "translate(" + (svgWidth/2) + "," + (svgHeight/2) + ")");
+		pie = d3.layout.pie().sort(null);
+		arc = d3.svg.arc()
+				.innerRadius(40)
+				.outerRadius(60);
+		var background = loadAnim.append("path")
+				.attr("d", d3.svg.arc()
+						.innerRadius(40)
+						.outerRadius(60)
+						.startAngle(0)
+						.endAngle(2*Math.PI)
+				)
+				.style("fill", "lightgrey");
+		var foreground = loadAnim.selectAll(".fg")
+				.data(pie([0]))
+				.enter()
 				.append("path")
-				.attr("d", arc);
-		loading.transition()
-				.ease("linear")
-				.duration(500)
-				.attr("transform", "rotate(" + 90 + ")")
-				.transition()
-				.ease("linear")
-				.delay(500)
-				.duration(500)
-				.attr("transform", "rotate(" + 180 + ")")
-				.transition()
-				.ease("linear")
-				.delay(1000)
-				.duration(500)
-				.attr("transform", "rotate(" + 270 + ")")
-				.transition()
-				.ease("linear")
-				.delay(1500)
-				.duration(500)
-				.attr("transform", "rotate(" + 360 + ")");
+				.attr("class", "fg")
+				.attr("d", arc)
+				.style("fill", "blue");
+		foreground.each(function() {
+			this.currentStart = 0;
+			this.currentEnd = 0;
+		});
+
+		var counter = 1;
+		var interval = setInterval(function() {
+			if (loadingProgress < 29) {
+				foreground.data(pie([counter, 100 - counter]))
+						.transition()
+						.duration(19)
+						.ease("linear")
+						.attrTween("d", arcTween)
+						.attr("transform", "rotate(" + (counter*360/100) + ")");
+				if ((counter++) == 100) counter = 0;
+			} else clearInterval(interval);
+		}, 20);
 
 		//Učitavanje podataka
 		d3.json("djelatnosti.json", function(err, dat) {
 			kategorije = dat;
+			loadingProgress++;
 		});
 		for (var year = 2000; year < 2014; year++) {
 			loadData(year);
 		}
-
-		//Crtanje grafa
-		setTimeout(function() {
-			svg.selectAll("*").remove();
-			initialCriteria();
-			setDataToPlot();
-			plotData();
-			slider();
-			categoryMenu();
-			infoPanel();
-			d3.select("#select")
-					.style("visibility", "visible");
-		}, 2000);
+		
 
 		d3.select("#selectYear")
 				.on("change", function() {
 					currentYear = d3.select(this).node().value;
 					setDataToPlot();
 					update();
-					updateInfoPanel();
+					updatePieChart();
 				});
 	</script>
 </body>

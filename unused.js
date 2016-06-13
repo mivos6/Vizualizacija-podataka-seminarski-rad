@@ -126,3 +126,81 @@ function isSubCategory(element) {
 	}
 	return false;
 }
+
+//Debug animacija linechart-a
+	for (i = 10; i >= 0; i--) {
+		var x = lineChartXScale(i + 1);
+		var y = lineChartYScale(data[i]);
+
+		var currentLine = d3.select("#graph_line" + i);
+		currentLine.transition()
+				.delay(11000 - 1000*i)
+				.duration(1000)
+				.attr("x2", x)
+				.attr("y2", y);	
+
+		var currentCircle = d3.selectAll("#graph_point" + (i-1) + "~*");
+		if (i == 0) currentCircle = d3.selectAll(".graph_point");
+		currentCircle.transition()
+				.delay(11000 - 1000*i)
+				.duration(1000)
+				.attr("cx", x)
+				.attr("cy", y);
+	}
+
+	for (i = 0; i < 11; i++) {
+		x = lineChartXScale(i + 2);
+		y = lineChartYScale(data[i + 1]);
+		var currentLine = d3.select("#graph_line" + i);
+		currentLine.transition()
+				.delay(12000 + 1000*i)
+				.duration(1000)
+				.attr("x2", x)
+				.attr("y2", y);	
+
+		var currentCircle = d3.selectAll("#graph_point" + i + "~*");
+		currentCircle.transition()
+				.delay(12000 + 1000*i)
+				.duration(1000)
+				.attr("cx", x)
+				.attr("cy", y);
+	}
+
+	//Debug animacija
+	for (i = 10; i >= 0; i--) {
+		var x = lineChartXScale(i + 1);
+		var y = lineChartYScale(data[i]);
+
+		var currentLine = d3.select("#graph_line" + i);
+		currentLine.transition()
+				.delay(11000 - 1000*i)
+				.duration(1000)
+				.attr("x2", x)
+				.attr("y2", y);	
+
+		var currentCircle = d3.selectAll("#graph_point" + (i-1) + "~*");
+		if (i == 0) currentCircle = d3.selectAll(".graph_point");
+		currentCircle.transition()
+				.delay(11000 - 1000*i)
+				.duration(1000)
+				.attr("cx", x)
+				.attr("cy", y);
+	}
+
+	for (i = 0; i < 11; i++) {
+		x = lineChartXScale(i + 2);
+		y = lineChartYScale(data[i + 1]);
+		var currentLine = d3.select("#graph_line" + i);
+		currentLine.transition()
+				.delay(12000 + 1000*i)
+				.duration(1000)
+				.attr("x2", x)
+				.attr("y2", y);	
+
+		var currentCircle = d3.selectAll("#graph_point" + i + "~*");
+		currentCircle.transition()
+				.delay(12000 + 1000*i)
+				.duration(1000)
+				.attr("cx", x)
+				.attr("cy", y);
+	}

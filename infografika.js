@@ -1,4 +1,5 @@
-var kategorije, 
+var loadingProgress = 0,
+	kategorije, 
 	zaposleni = [], 
 	neto = [], 
 	ukupnoZap = [], 
@@ -19,6 +20,11 @@ var criteria = [],			//kriterij za iscrtavanje
 	index;					//indeks koji pokazuje na podatke za odabranu godinu
 
 var pie, arc;	//za kreiranje piecharta
+
+var lineChartXScale,
+	lineChartYScale,
+	lineChartXAxis,
+	lineChartYAxis;
 
 //inicijalno iscrtavanje grafa
 //dodavanje podataka i elemenata u svg
@@ -496,6 +502,7 @@ function selectItem(d, item) {
 	setDataToPlot();
 	update();
 	updatePieChart(currentlySelected);
+	updateLineChart();
 
 	//Dodaj overlay na odabrani dio piechart-a
 	d3.select("#overlay1").remove();
@@ -578,25 +585,35 @@ function infoPanel() {
 			.attrTween("d", arcTween);
 
 	//Dodavanje linechart-a
+	var clipPath = infoPanel.append("clipPath")
+			.attr("id", "linechart-area")
+			.append("rect")
+			.attr("x", 0)
+			.attr("y", 0)
+			.attr("width", 2*pieChartRadius+40)
+			.attr("height", pieChartRadius+25)
+			.attr("transform", "translate(-40,-5)");
+
 	var lineChart = infoPanel.append("g")
 			.attr("id", "lineChart")
+			.attr("clip-path", "url(#linechart-area)")
 			.attr("transform", "translate(40,"+ (2*pieChartRadius + 20) +")");
 
-	var lineChartXScale = d3.scale.linear()
+	lineChartXScale = d3.scale.linear()
         	.domain([1,12])
         	.range([0, 2*pieChartRadius]);
     
-    var lineChartYScale = d3.scale.linear()
+    lineChartYScale = d3.scale.linear()
 			.domain([d3.min(getNumeric(plotN[0])),
 				d3.max(getNumeric(plotN[0]))])
-        	.range([0, pieChartRadius]);
+        	.range([pieChartRadius, 0]);
 
-    var lineChartXAxis = d3.svg.axis()
+    lineChartXAxis = d3.svg.axis()
 			.scale(lineChartXScale)
 			.orient("bottom")
 			.ticks(12);
 
-    var lineChartYAxis = d3.svg.axis()
+    lineChartYAxis = d3.svg.axis()
 			.scale(lineChartYScale)
 			.orient("left")
 			.ticks(10);
@@ -623,24 +640,25 @@ function infoPanel() {
 			.attr("x2", function(d, i) { return lineChartXScale(i + 2); })
 			.attr("y2", function(d, i) { return lineChartYScale(data[i + 1]); })
 			.style("stroke", "blue");
+	var points = lineChart.selectAll("circle")
+			.data(data)
+			.enter()
+			.append("circle")
+			.attr("class", "graph_point")
+			.attr("id",	function(d, i) { return "graph_point" + i})
+			.attr("cx", function(d, i) { return lineChartXScale(i + 1); })
+			.attr("cy", function(d) { return lineChartYScale(d); })
+			.attr("r", 4)
+			.style("fill", "blue");
 
-	for (i = 10; i >= 0; i--) {
-		var current = d3.select("#graph_line" + i);
-		var x = current.attr("x1");
-		var y = current.attr("y1");
-		current.transition()
-				.delay(11000 - 1000*i)
-				.duration(1000)
-				.attr("x2", x)
-				.attr("y2", y);		
-	}
 	//Skrivanje linecharta
-	//lineChart.selectAll("*")
-	//		.style("opacity", 0);
+	lineChart.selectAll("*")
+			.style("opacity", 0);
 }
 
 //Ažuriranje piechart-a
 function updatePieChart(currentlySelected) {
+	if (typeof currentlySelected == "undefined") currentlySelected = selectedItem;
 	var pieChart = d3.select("#infoPanel #pieChart").selectAll("path");
 	pie = d3.layout.pie();
 
@@ -689,11 +707,92 @@ function updatePieChart(currentlySelected) {
 				.on("mousemove", moveTooltip)
 				.on("click", function(d) { selectInMenu(d.data, d3.select(this)); })
 				.transition()
-				.delay(function(d, i) { return 5*i; })
+				//.delay(function(d, i) { return 5*i; })
 				.duration(200)
 				.ease("linear")
 				.attrTween("d", arcTween);
 	}
+
+	var selected;
+	pieChart.each(function(d) {
+		if (d) {
+			if (selectedItem == d.data.Djelatnost) {
+				selected = d3.select(this);
+			}
+		}
+	});
+	if (selected) {
+		setTimeout(function() {
+			var d = selected.attr("d");
+			d3.select("#infoPanel #pieChart #overlay1")
+					.attr("d", d);
+		}, 200);
+	}
+}
+
+//Ažuriranje linechart-a
+function updateLineChart() {
+	var lineChart = d3.select("#infoPanel #lineChart");
+	if ((selectedItem == "Sve djelatnosti") || (selectedItem == "Sve kategorije")) {
+		lineChart.selectAll("*")
+				.transition()
+				.duration(250)
+				.style("opacity", 0);
+		return;
+	} else {
+		lineChart.selectAll("*")
+				.transition()
+				.duration(250)
+				.style("opacity", 1);
+	}
+	var lines = lineChart.selectAll(".graph_line");
+	var circles = lineChart.selectAll(".graph_point");
+
+	var i;
+	var index = yearToIndex(currentYear);
+	var parent = getParentCategory(selectedItem);
+	console.log(parent.name)
+	console.log("=============")
+	console.log(selectedItem)
+	var data;
+	if (parent.name == selectedItem) {
+		for (i = 0; i < neto[index].length; i++) {
+			if (neto[index][i].Djelatnost == selectedItem) {
+				data = getNumeric(neto[index][i]);
+				break;
+			}
+		}
+	} else {
+		for (i = 0; i < plotN.length; i++) {
+			if (plotN[i].Djelatnost == selectedItem) {
+				data = getNumeric(plotN[i]);
+				break;
+			}
+		}
+	}
+
+	lineChartYScale.domain([d3.min(data), d3.max(data)]);
+
+	lines.data(data.slice(0, data.length - 1))
+			.transition()
+			.delay(250)
+			.duration(250)
+			.attr("x1", function(d, i) { return lineChartXScale(i + 1); })
+			.attr("y1", function(d) { return lineChartYScale(d); })
+			.attr("x2", function(d, i) { return lineChartXScale(i + 2); })
+			.attr("y2", function(d, i) { return lineChartYScale(data[i + 1]); });
+	circles.data(data)
+			.transition()
+			.delay(250)
+			.duration(250)
+			.attr("cx", function(d, i) { return lineChartXScale(i + 1); })
+			.attr("cy", function(d) { return lineChartYScale(d); });
+
+	lineChart.select(".y.axis")
+			.transition("linear")
+			.delay(250)
+			.duration(250)
+			.call(lineChartYAxis);
 }
 
 //Odabir djelatnosti u meniju klikom na točku grafa
@@ -719,7 +818,6 @@ function selectInMenu(d) {
 	if (name == parent.name) {	//određivanje da li je označena kategorija ili podkategorija
 		//Označavanje kategorije koja je odabrana
 		var s = level1.select("#kategorija" + i)
-		console.log(s)
 		selectItem(s.node().__data__, s);
 	}
 	else {
@@ -748,11 +846,17 @@ function loadData(year) {
 	d3.json(pathz, function(err, dat) {
 		zaposleni[index] = dat;
 		ukupnoZap[index] = zaposleni[index].splice(0 ,1)[0];
+		loadingProgress++;
+		if (loadingProgress >=29)
+			initialize();
 	});
 
 	d3.json(pathn, function(err, dat) {
 		neto[index] = dat;
 		prosjekNeto[index] = neto[index].splice(0 ,1)[0];
+		loadingProgress++;
+		if (loadingProgress >=29)
+			initialize();
 	});
 }
 
@@ -872,4 +976,18 @@ function arcTween(d) {
 //Podešavanje boje elementa
 function getColor(d) {
 	return colorScale(getParentCategory(d.Djelatnost).name);
+}
+
+//Početno Crtanje grafa
+function initialize() {
+	svg.selectAll("*").remove();
+	initialCriteria();
+	setDataToPlot();
+	plotData();
+	slider();
+	categoryMenu();
+	infoPanel();
+	d3.select("#select")
+			.style("visibility", "visible");
+	d3.select("#category_menu").classed("hidden", false);
 }
