@@ -137,12 +137,6 @@ function update() {
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
 			.on("click", selectInMenu);
-			/*
-			.on("click", function(d) {
-				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
-					return selectInMenu(d);
-			});
-			*/
 	circles.transition("linear")
 			.duration(500)
 			.attr("r", r)
@@ -161,12 +155,6 @@ function update() {
 			.on("mouseout", hideTooltip)
 			.on("mousemove", moveTooltip)
 			.on("click", selectInMenu)
-			/*
-			.on("click", function(d) {
-				if (selectedItem == "Sve djelatnosti" || selectedItem == "Sve kategorije")
-					return selectInMenu(d);
-			});
-			*/
 			.transition()
 			.duration(500)
 			.attr("cx", function(d) { return xScale(selectMonth(d)); })
@@ -508,7 +496,7 @@ function selectItem(d, item) {
 	d3.select("#overlay1").remove();
 	var name = selectedItem;
 	//Overlay stavljam samo ako je odabrana podkategorija
-	if (name != "Sve djelatnosti" && name != "Sve kategorije" && !(name == getParentCategory(name))) {
+	if (name != "Sve djelatnosti" && name != "Sve kategorije" && name != getParentCategory(name)) {
 		var selected;
 		d3.select("#infoPanel #pieChart").selectAll("path")
 				.each(function(d) {
@@ -630,12 +618,12 @@ function infoPanel() {
 	//Crtanje grafa
 	var data = getNumeric(plotN[0]);
 	var lines = lineChart.selectAll(".graph_line")
-			.data(data.slice(0, data.length - 1))
+			.data(data.slice(0, data.length - 1)) //jedna linija manje nego što ima podataka 
 			.enter()
 			.append("line")
 			.attr("class", "graph_line")
 			.attr("id", function(d, i) { return "graph_line" + i})
-			.attr("x1", function(d, i) { return lineChartXScale(i + 1); })
+			.attr("x1", function(d, i) { return lineChartXScale(i + 1); }) //x skala nije zero-based pa ide i+1
 			.attr("y1", function(d) { return lineChartYScale(d); })
 			.attr("x2", function(d, i) { return lineChartXScale(i + 2); })
 			.attr("y2", function(d, i) { return lineChartYScale(data[i + 1]); })
@@ -707,12 +695,12 @@ function updatePieChart(currentlySelected) {
 				.on("mousemove", moveTooltip)
 				.on("click", function(d) { selectInMenu(d.data, d3.select(this)); })
 				.transition()
-				//.delay(function(d, i) { return 5*i; })
 				.duration(200)
 				.ease("linear")
 				.attrTween("d", arcTween);
 	}
 
+	//Podešavanje oblika overlay-a kod promjene mjeseca ili godine
 	var selected;
 	pieChart.each(function(d) {
 		if (d) {
@@ -732,6 +720,7 @@ function updatePieChart(currentlySelected) {
 
 //Ažuriranje linechart-a
 function updateLineChart() {
+	//Za odabrane sve kategorije ili sve djelatnosti sakrij graf
 	var lineChart = d3.select("#infoPanel #lineChart");
 	if ((selectedItem == "Sve djelatnosti") || (selectedItem == "Sve kategorije")) {
 		lineChart.selectAll("*")
@@ -748,12 +737,10 @@ function updateLineChart() {
 	var lines = lineChart.selectAll(".graph_line");
 	var circles = lineChart.selectAll(".graph_point");
 
+	//Odabrati skup podataka gdje d.Djelatnost odgovara odabranom item-u
 	var i;
 	var index = yearToIndex(currentYear);
 	var parent = getParentCategory(selectedItem);
-	console.log(parent.name)
-	console.log("=============")
-	console.log(selectedItem)
 	var data;
 	if (parent.name == selectedItem) {
 		for (i = 0; i < neto[index].length; i++) {
@@ -771,8 +758,15 @@ function updateLineChart() {
 		}
 	}
 
+	//Tranzicija y-skale
 	lineChartYScale.domain([d3.min(data), d3.max(data)]);
+	lineChart.select(".y.axis")
+			.transition("linear")
+			.delay(250)
+			.duration(250)
+			.call(lineChartYAxis);
 
+	//Tranzicija elemenata grafa
 	lines.data(data.slice(0, data.length - 1))
 			.transition()
 			.delay(250)
@@ -787,12 +781,6 @@ function updateLineChart() {
 			.duration(250)
 			.attr("cx", function(d, i) { return lineChartXScale(i + 1); })
 			.attr("cy", function(d) { return lineChartYScale(d); });
-
-	lineChart.select(".y.axis")
-			.transition("linear")
-			.delay(250)
-			.duration(250)
-			.call(lineChartYAxis);
 }
 
 //Odabir djelatnosti u meniju klikom na točku grafa
@@ -847,6 +835,8 @@ function loadData(year) {
 		zaposleni[index] = dat;
 		ukupnoZap[index] = zaposleni[index].splice(0 ,1)[0];
 		loadingProgress++;
+		//Ima ukupno 28 datoteka s podacima + 1 s klasifikacijama
+		//Kad se učita svih 29 iscrtava se graf
 		if (loadingProgress >=29)
 			initialize();
 	});
