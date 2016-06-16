@@ -84,12 +84,19 @@ function plotData() {
 	//Crtanje osi
 	graph.append("g")
 			.attr("class", "x axis")
-			.attr("transform", "translate(0," + (graphHeight - verticalPadding) + ")")
-			.call(xAxis);
+			.attr("transform", "translate(0," + (graphHeight-verticalPadding) + ")")
+			.call(xAxis)
+			.append("text")
+					.attr("transform", "translate("+ (svgWidth-horizontalPadding-80) +",30)")
+					.text("Broj zaposlenih");
 	graph.append("g")
 			.attr("class", "y axis")
 			.attr("transform", "translate(" + horizontalPadding + ",0)")
-			.call(yAxis);
+			.call(yAxis)
+			.append("text")
+					.attr("transform", "translate(-60,"+ (horizontalPadding-40) +")")
+					.text("Neto plaća");
+
 	//Točke grafa
 	var circles = graph.selectAll("circle")
 			.data(plotZ, getKey)
@@ -564,7 +571,7 @@ function infoPanel() {
 			.on("mousemove", moveTooltip)
 			.on("click", function(d) { selectInMenu(d.data); })
 			.style("fill", function(d) { return getColor(d.data); })
-			.style("stroke", "white")
+			.style("stroke", "black")
 			.style("stroke-width", "0.5px")
 			.transition()
 			.delay(function(d, i) { return 5*i; })
@@ -576,10 +583,10 @@ function infoPanel() {
 	var clipPath = infoPanel.append("clipPath")
 			.attr("id", "linechart-area")
 			.append("rect")
-			.attr("x", 0)
-			.attr("y", 0)
-			.attr("width", 2*pieChartRadius+40)
-			.attr("height", pieChartRadius+25)
+			.attr("x", -20)
+			.attr("y", -20)
+			.attr("width", 2*pieChartRadius+70)
+			.attr("height", pieChartRadius+55)
 			.attr("transform", "translate(-40,-5)");
 
 	var lineChart = infoPanel.append("g")
@@ -610,10 +617,16 @@ function infoPanel() {
 	lineChart.append("g")
 			.attr("class", "x axis")
 			.attr("transform", "translate(0," + pieChartRadius + ")")
-			.call(lineChartXAxis);
+			.call(lineChartXAxis)
+			.append("text")
+					.attr("transform", "translate("+ (2*pieChartRadius-30) +",30)")
+					.text("Mjesec");
 	lineChart.append("g")
 			.attr("class", "y axis")
-			.call(lineChartYAxis);
+			.call(lineChartYAxis)
+			.append("text")
+					.attr("transform", "translate(-40,-10)")
+					.text("Neto plaća");
 
 	//Crtanje grafa
 	var data = getNumeric(plotN[0]);
@@ -741,7 +754,8 @@ function updateLineChart() {
 	var i;
 	var index = yearToIndex(currentYear);
 	var parent = getParentCategory(selectedItem);
-	var data;
+	var data, brZap;
+	//Ako se radi o kategoriji
 	if (parent.name == selectedItem) {
 		for (i = 0; i < neto[index].length; i++) {
 			if (neto[index][i].Djelatnost == selectedItem) {
@@ -749,6 +763,7 @@ function updateLineChart() {
 				break;
 			}
 		}
+	//Ako se radi o podkategoriji
 	} else {
 		for (i = 0; i < plotN.length; i++) {
 			if (plotN[i].Djelatnost == selectedItem) {
@@ -776,6 +791,16 @@ function updateLineChart() {
 			.attr("x2", function(d, i) { return lineChartXScale(i + 2); })
 			.attr("y2", function(d, i) { return lineChartYScale(data[i + 1]); });
 	circles.data(data)
+			.on("mouseover", function(d, j) {
+				d3.select("#tooltip1").html(d);
+				d3.select("#tooltip1")
+						.style("top", (d3.event.pageY-25) + "px")
+						.style("left", d3.event.pageX + "px")
+						.classed("hidden", false);
+			})
+			.on("mouseout", function() {
+				d3.select("#tooltip1").classed("hidden", true);
+			})
 			.transition()
 			.delay(250)
 			.duration(250)
